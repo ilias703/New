@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaffee – Eine kurze Kulturgeschichte</title>
+
+<!-- === FONTS === Instrument Serif (Display), Archivo (Text/Labels), JetBrains Mono (Daten) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================
+   THEME — alle Farben & Schriften hier ändern
+   =========================================== */
+:root {
+    --paper: #E9E5DB;
+    --paper-deep: #DCD6C4;
+    --sun: #F1EE2E;
+    --sun-soft: #F8F39B;
+    --haze: #F0DA7C;
+    --ink: #1B2566;
+    --ember: #E26B4A;
+    --line-soft: rgba(27, 37, 102, 0.2);
+
+    --stage-bg: #12183f;
+    --slide-bg: var(--paper);
+
+    --serif: 'Instrument Serif', Georgia, serif;
+    --sans: 'Archivo', sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+    --pad: 76px;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===========================================
+   FIXED 16:9 STAGE (viewport-base.css, vollständig)
+   =========================================== */
+html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
+.deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff); }
+.slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg, #fff); }
+.slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
+img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+.deck-controls { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1000; }
+@media print {
+    html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+    .deck-viewport { position: static; overflow: visible; background: #fff; }
+    .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+    .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+    .deck-controls { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+}
+
+/* ===========================================
+   SLIDE-ÜBERGANG & REVEAL-ANIMATION
+   =========================================== */
+.slide { transition: opacity 0.5s ease, visibility 0.5s; color: var(--ink); }
+.reveal { opacity: 0; transform: translateY(28px); transition: opacity 0.9s var(--ease), transform 0.9s var(--ease); }
+.slide.visible .reveal { opacity: 1; transform: none; }
+.slide.visible .d1 { transition-delay: 0.10s; }
+.slide.visible .d2 { transition-delay: 0.22s; }
+.slide.visible .d3 { transition-delay: 0.34s; }
+.slide.visible .d4 { transition-delay: 0.46s; }
+.slide.visible .d5 { transition-delay: 0.58s; }
+.slide.visible .d6 { transition-delay: 0.70s; }
+
+/* Blooms "atmen" langsam beim Einblenden */
+.bloom { position: absolute; pointer-events: none; transform: scale(0.85); opacity: 0; transition: transform 2.2s var(--ease), opacity 1.6s ease; }
+.slide.visible .bloom { transform: scale(1); opacity: 1; }
+
+/* ===========================================
+   ATMOSPHÄRE — Sonnen- und Glut-Blüten
+   =========================================== */
+.sun-bloom {
+    background: radial-gradient(closest-side,
+        rgba(241, 238, 46, 0.92) 0%,
+        rgba(241, 238, 46, 0.55) 38%,
+        rgba(240, 218, 124, 0.2) 62%,
+        rgba(233, 229, 219, 0) 88%);
+    border-radius: 50%;
+}
+.ember-bloom {
+    background: radial-gradient(closest-side, rgba(226, 107, 74, 0.22) 0%, rgba(226, 107, 74, 0) 85%);
+    border-radius: 50%;
+}
+
+/* Gelbe Kachel-Unterdruck (Cover) */
+.tiles { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(8, 1fr); pointer-events: none; }
+.tile { background: var(--sun); opacity: 0; transition: opacity 1.4s ease; }
+.slide.visible .tile { opacity: var(--o, 0.5); }
+
+/* ===========================================
+   TYPOGRAFIE-BAUSTEINE (auf 1920×1080 gesetzt)
+   =========================================== */
+.label { font-family: var(--sans); font-weight: 600; font-size: 16px; letter-spacing: 0.2em; text-transform: uppercase; }
+.label-sm { font-family: var(--sans); font-weight: 600; font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; }
+.display { font-family: var(--serif); font-weight: 400; font-size: 300px; line-height: 0.86; letter-spacing: -0.02em; }
+.display-md { font-family: var(--serif); font-weight: 400; font-size: 240px; line-height: 0.86; letter-spacing: -0.018em; }
+.display-it { font-family: var(--serif); font-style: italic; font-weight: 400; font-size: 96px; line-height: 1.04; letter-spacing: -0.005em; }
+.headline { font-family: var(--serif); font-weight: 400; font-size: 92px; line-height: 1.02; letter-spacing: -0.008em; }
+.headline-sm { font-family: var(--serif); font-weight: 400; font-size: 56px; line-height: 1; letter-spacing: -0.005em; }
+.lede { font-family: var(--sans); font-size: 24px; line-height: 1.55; max-width: 720px; }
+.body { font-family: var(--sans); font-size: 20px; line-height: 1.55; }
+.mono { font-family: var(--mono); font-size: 18px; letter-spacing: 0.04em; }
+em { font-style: italic; }
+
+/* Seitenzahl — die einzige wiederkehrende Chrome */
+.pagenum { position: absolute; right: 48px; bottom: 40px; font-family: var(--mono); font-size: 15px; letter-spacing: 0.08em; opacity: 0.75; z-index: 5; }
+
+/* Haarlinie (die einzige Rahmenart im System) */
+.rule { border-top: 1px solid var(--ink); }
+
+/* Fußband mit 4 Spalten */
+.footer-band { position: absolute; left: var(--pad); right: var(--pad); bottom: 96px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 44px; z-index: 2; }
+.footer-band > div { border-top: 1px solid var(--ink); padding-top: 18px; }
+.footer-band .label-sm { display: block; margin-bottom: 10px; }
+.footer-band .body { font-size: 18px; line-height: 1.45; }
+
+/* ===========================================
+   FOLIE 1 — COVER
+   =========================================== */
+.s-cover .sun-bloom { width: 1100px; height: 1000px; left: 520px; top: 60px; }
+.s-cover .ember-bloom { width: 700px; height: 700px; right: -180px; top: -220px; }
+.s-cover .eyebrow { position: absolute; left: var(--pad); top: 76px; z-index: 2; }
+.s-cover .date-rail { position: absolute; right: var(--pad); top: 64px; text-align: right; font-family: var(--serif); font-size: 96px; line-height: 0.96; z-index: 2; }
+.s-cover .title-block { position: absolute; left: var(--pad); top: 300px; z-index: 2; }
+.s-cover .display-it { font-size: 84px; margin-top: 28px; margin-left: 12px; }
+
+/* ===========================================
+   FOLIE 2 — KAPITELTRENNER
+   =========================================== */
+.s-chapter .sun-bloom { width: 1440px; height: 1440px; left: -520px; bottom: -640px; }
+.s-chapter .rail { position: absolute; left: 44px; top: 540px; transform-origin: left top; transform: rotate(-90deg) translateX(-50%); font-family: var(--sans); font-weight: 600; font-size: 14px; letter-spacing: 0.32em; text-transform: uppercase; white-space: nowrap; z-index: 2; }
+.s-chapter .jumbo { position: absolute; left: 130px; bottom: 30px; font-family: var(--serif); font-size: 760px; line-height: 0.84; letter-spacing: -0.04em; z-index: 2; }
+.s-chapter .text { position: absolute; left: 1000px; top: 300px; width: 780px; z-index: 2; }
+.s-chapter .headline { margin: 28px 0 40px; }
+
+/* ===========================================
+   FOLIE 3 — STATIONEN (nummerierte Liste)
+   =========================================== */
+.s-strands .sun-bloom { width: 900px; height: 900px; right: -260px; top: -300px; }
+.s-strands .head { position: absolute; left: var(--pad); right: var(--pad); top: 72px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 28px; border-bottom: 1px solid var(--ink); z-index: 2; }
+.s-strands .list { position: absolute; left: var(--pad); right: var(--pad); top: 300px; display: flex; flex-direction: column; gap: 34px; z-index: 2; }
+.strand { display: grid; grid-template-columns: 90px 140px 1fr 1.25fr; gap: 28px; align-items: baseline; padding-bottom: 34px; border-bottom: 1px solid var(--line-soft); }
+.strand .num { font-family: var(--serif); font-size: 52px; line-height: 1; }
+.strand .t { font-family: var(--serif); font-size: 58px; line-height: 1.05; }
+.strand .body { font-size: 22px; }
+
+/* ===========================================
+   FOLIE 4 — GELBES PANEL MIT KENNZAHL
+   =========================================== */
+.s-panel .panel { position: absolute; left: 0; top: 0; bottom: 0; width: 900px; background: var(--sun); padding: 80px var(--pad); z-index: 1; }
+.s-panel .big { font-family: var(--serif); font-size: 330px; line-height: 0.84; letter-spacing: -0.04em; margin-top: 230px; }
+.s-panel .big small { font-size: 140px; letter-spacing: -0.02em; }
+.s-panel .panel .lede { margin-top: 36px; font-size: 26px; max-width: 640px; }
+.s-panel .ember-bloom { width: 900px; height: 900px; right: -300px; bottom: -340px; }
+.s-panel .right { position: absolute; left: 1000px; right: var(--pad); top: 80px; bottom: 120px; display: flex; flex-direction: column; z-index: 2; }
+.s-panel .headline { font-size: 84px; margin: 28px 0 60px; }
+.mini-stats { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 44px; }
+.mini-stats > div { border-top: 1px solid var(--ink); padding-top: 20px; }
+.mini-stats .fig { font-family: var(--serif); font-size: 104px; line-height: 0.92; letter-spacing: -0.01em; margin: 10px 0 12px; }
+
+/* ===========================================
+   FOLIE 5 — BALKENDIAGRAMM
+   =========================================== */
+.s-chart .sun-bloom { width: 1000px; height: 900px; left: 820px; top: 160px; }
+.s-chart .head { position: absolute; left: var(--pad); top: 72px; width: 640px; z-index: 2; }
+.s-chart .head .headline { margin: 28px 0 32px; font-size: 84px; }
+.s-chart .chart { position: absolute; left: 820px; right: var(--pad); top: 190px; z-index: 2; }
+.bar-row { display: grid; grid-template-columns: 220px 1fr 110px; align-items: center; gap: 28px; padding: 34px 0; border-bottom: 1px solid var(--line-soft); }
+.bar-row:first-child { border-top: 1px solid var(--ink); }
+.bar-row .country { font-family: var(--serif); font-size: 40px; line-height: 1; }
+.bar-row .val { font-family: var(--mono); font-size: 22px; text-align: right; }
+.bar { height: 22px; background: var(--ink); width: 0; transition: width 1.4s var(--ease); }
+.bar.lit { background: var(--sun); border: 1px solid var(--ink); }
+.slide.visible .bar { width: var(--w); }
+.s-chart .source { margin-top: 28px; font-family: var(--mono); font-size: 15px; opacity: 0.7; }
+
+/* ===========================================
+   FOLIE 6 — ZITAT
+   =========================================== */
+.s-quote .sun-bloom { width: 1300px; height: 1100px; left: 310px; top: -10px; }
+.s-quote .ember-bloom { width: 600px; height: 600px; left: -160px; bottom: -200px; }
+.s-quote .mark { position: absolute; left: 150px; top: 60px; font-family: var(--serif); font-size: 400px; line-height: 1; z-index: 2; }
+.s-quote .quote { position: absolute; left: 320px; right: 240px; top: 250px; z-index: 2; }
+.s-quote .display-it { font-size: 100px; }
+.s-quote .by { margin-top: 64px; display: flex; gap: 28px; align-items: center; }
+.s-quote .by .rule { width: 90px; }
+
+/* ===========================================
+   FOLIE 7 — LEDGER / TABELLE
+   =========================================== */
+.s-ledger .sun-bloom { width: 900px; height: 900px; left: -300px; top: -380px; }
+.s-ledger .head { position: absolute; left: var(--pad); right: var(--pad); top: 72px; display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 28px; border-bottom: 1px solid var(--ink); z-index: 2; }
+.s-ledger .table { position: absolute; left: var(--pad); right: var(--pad); top: 300px; z-index: 2; }
+.ledger-row { display: grid; grid-template-columns: 130px 1.5fr 1fr 170px; gap: 28px; align-items: baseline; padding: 44px 0; border-bottom: 1px solid var(--line-soft); }
+.ledger-row.th { padding: 0 0 16px; border-bottom: 1px solid var(--ink); }
+.ledger-row .mono { font-size: 20px; }
+.ledger-row .title { font-family: var(--serif); font-size: 60px; line-height: 1.05; }
+.ledger-row .right { text-align: right; }
+
+/* ===========================================
+   FOLIE 8 — ABSCHLUSS
+   =========================================== */
+.s-close .sun-bloom { width: 1500px; height: 1100px; left: 210px; bottom: -560px; }
+.s-close .tiles .tile { --o: 0.35; }
+.s-close .center { position: absolute; left: 0; right: 0; top: 190px; text-align: center; z-index: 2; }
+.s-close .display-md { margin: 30px 0 30px; }
+.s-close .display-it { font-size: 64px; }
+
+/* ===========================================
+   CHROME AUSSERHALB DER BÜHNE
+   =========================================== */
+.nav-hint { position: fixed; left: 20px; bottom: 16px; font-family: var(--mono); font-size: 12px; color: #fff; mix-blend-mode: difference; opacity: 0.55; z-index: 1000; }
+.progress { position: fixed; left: 0; top: 0; height: 3px; background: var(--sun); width: 0; transition: width 0.4s var(--ease); z-index: 1000; }
+
+/* ===========================================
+   INLINE-BEARBEITUNG (E-Taste / Ecke oben links)
+   =========================================== */
+.edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
+.edit-toggle { position: fixed; top: 16px; left: 16px; z-index: 10001; font-family: var(--mono); font-size: 13px; padding: 8px 12px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+.edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+.edit-toggle.active { background: var(--sun); }
+body.editing [contenteditable="true"] { outline: 1px dashed rgba(27, 37, 102, 0.45); outline-offset: 4px; }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+    <!-- ============ 01 COVER ============ -->
+    <section class="slide s-cover active" aria-label="Titel">
+        <div class="tiles" aria-hidden="true">
+            <div class="tile" style="grid-column:3;grid-row:1/3;--o:.38"></div>
+            <div class="tile" style="grid-column:4;grid-row:3/5;--o:.55"></div>
+            <div class="tile" style="grid-column:2;grid-row:7/9;--o:.3"></div>
+        </div>
+        <div class="bloom ember-bloom"></div>
+        <div class="bloom sun-bloom"></div>
+        <div class="eyebrow label reveal d1">Eine kurze Kulturgeschichte</div>
+        <div class="date-rail reveal d2">1450 –<br>2026</div>
+        <div class="title-block">
+            <h1 class="display reveal d2">Kaffee</h1>
+            <p class="display-it reveal d3">Vom Strauch in die Tasse</p>
+        </div>
+        <div class="footer-band">
+            <div class="reveal d4"><span class="label-sm">Herkunft</span><p class="body">Hochland von Kaffa, Äthiopien</p></div>
+            <div class="reveal d4"><span class="label-sm">Verbreitung</span><p class="body">Über Jemen, Osmanisches Reich und Europa in die Welt</p></div>
+            <div class="reveal d5"><span class="label-sm">Heute</span><p class="body">Eines der meistgehandelten Agrarprodukte</p></div>
+            <div class="reveal d5"><span class="label-sm">Dauer</span><p class="body">Acht Folien, etwa zehn Minuten</p></div>
+        </div>
+        <div class="pagenum">01 / 08</div>
+    </section>
+
+    <!-- ============ 02 KAPITEL ============ -->
+    <section class="slide s-chapter" aria-label="Kapitel eins">
+        <div class="bloom sun-bloom"></div>
+        <div class="rail">Kapitel Eins — Ursprung</div>
+        <div class="jumbo reveal d1">01</div>
+        <div class="text">
+            <div class="label reveal d2">Die Legende</div>
+            <h2 class="headline reveal d3">Ein Hirte, seine Ziegen und <em>rote Beeren</em></h2>
+            <p class="lede reveal d4">Der Überlieferung nach bemerkte der Hirte Kaldi, dass seine Ziegen nach dem Fressen bestimmter Beeren die ganze Nacht nicht schlafen wollten. Ein Mönch kochte daraus einen Sud – und blieb beim Nachtgebet wach.</p>
+        </div>
+        <div class="pagenum">02 / 08</div>
+    </section>
+
+    <!-- ============ 03 STATIONEN ============ -->
+    <section class="slide s-strands" aria-label="Fünf Stationen">
+        <div class="bloom sun-bloom"></div>
+        <div class="head">
+            <h2 class="headline-sm reveal d1">Fünf Stationen einer Weltreise</h2>
+            <span class="label reveal d1">Route</span>
+        </div>
+        <div class="list">
+            <div class="strand reveal d2"><span class="num">i.</span><span class="mono">15. Jh.</span><span class="t">Jemen</span><p class="body">Sufi-Mönche trinken Kaffee, um wach zu bleiben. Der Hafen Mokka wird namensgebend.</p></div>
+            <div class="strand reveal d3"><span class="num">ii.</span><span class="mono">1554</span><span class="t">Konstantinopel</span><p class="body">Die ersten öffentlichen Kaffeehäuser entstehen – Orte für Schach, Musik und Politik.</p></div>
+            <div class="strand reveal d4"><span class="num">iii.</span><span class="mono">1645</span><span class="t">Venedig</span><p class="body">Händler bringen die Bohne nach Europa; bald folgen London, Paris und Amsterdam.</p></div>
+            <div class="strand reveal d5"><span class="num">iv.</span><span class="mono">1685</span><span class="t">Wien</span><p class="body">Kurz nach der Türkenbelagerung öffnet eines der ersten Wiener Kaffeehäuser.</p></div>
+            <div class="strand reveal d6"><span class="num">v.</span><span class="mono">1727</span><span class="t">Brasilien</span><p class="body">Erste Pflanzungen – heute das mit Abstand größte Anbauland der Welt.</p></div>
+        </div>
+        <div class="pagenum">03 / 08</div>
+    </section>
+
+    <!-- ============ 04 KENNZAHL ============ -->
+    <section class="slide s-panel" aria-label="Kennzahl">
+        <div class="panel">
+            <div class="label reveal d1">Weltweit, jeden Tag</div>
+            <div class="big reveal d2">2,2<small> Mrd.</small></div>
+            <p class="lede reveal d3">Tassen Kaffee werden nach gängigen Schätzungen täglich getrunken – mehr als eine Tasse für jeden vierten Menschen.</p>
+        </div>
+        <div class="bloom ember-bloom"></div>
+        <div class="right">
+            <div class="label reveal d2">Größenordnung</div>
+            <h2 class="headline reveal d3">Ein kleines Getränk mit <em>globalem</em> Gewicht</h2>
+            <p class="lede reveal d4">Rund 12,5 Millionen Betriebe bauen Kaffee an, die meisten davon kleine Familienfarmen.</p>
+            <div class="mini-stats">
+                <div class="reveal d5"><span class="label-sm">Anbauländer</span><div class="fig">≈ 70</div><p class="body">entlang des „Kaffeegürtels“ um den Äquator</p></div>
+                <div class="reveal d6"><span class="label-sm">Hauptsorten</span><div class="fig">2</div><p class="body">Arabica und Robusta prägen fast den gesamten Markt</p></div>
+            </div>
+        </div>
+        <div class="pagenum">04 / 08</div>
+    </section>
+
+    <!-- ============ 05 DIAGRAMM ============ -->
+    <section class="slide s-chart" aria-label="Pro-Kopf-Konsum">
+        <div class="bloom sun-bloom"></div>
+        <div class="head">
+            <div class="label reveal d1">Pro-Kopf-Konsum</div>
+            <h2 class="headline reveal d2">Der Norden trinkt am <em>meisten</em></h2>
+            <p class="lede reveal d3">Rohkaffee in Kilogramm pro Person und Jahr. Skandinavien führt seit Jahrzehnten – lange Winter, starke Filterkaffee-Kultur.</p>
+        </div>
+        <div class="chart">
+            <div class="bar-row reveal d2"><span class="country">Finnland</span><div class="bar" style="--w:100%"></div><span class="val">12,0</span></div>
+            <div class="bar-row reveal d2"><span class="country">Norwegen</span><div class="bar" style="--w:82%"></div><span class="val">9,9</span></div>
+            <div class="bar-row reveal d3"><span class="country">Niederlande</span><div class="bar" style="--w:70%"></div><span class="val">8,4</span></div>
+            <div class="bar-row reveal d3"><span class="country">Schweden</span><div class="bar" style="--w:68%"></div><span class="val">8,2</span></div>
+            <div class="bar-row reveal d4"><span class="country">Deutschland</span><div class="bar lit" style="--w:54%"></div><span class="val">6,5</span></div>
+            <div class="bar-row reveal d4"><span class="country">Italien</span><div class="bar" style="--w:49%"></div><span class="val">5,9</span></div>
+            <p class="source reveal d5">Gerundete Richtwerte, kg/Kopf/Jahr – Beispieldaten</p>
+        </div>
+        <div class="pagenum">05 / 08</div>
+    </section>
+
+    <!-- ============ 06 ZITAT ============ -->
+    <section class="slide s-quote" aria-label="Zitat">
+        <div class="bloom ember-bloom"></div>
+        <div class="bloom sun-bloom"></div>
+        <div class="mark reveal d1" aria-hidden="true">“</div>
+        <blockquote class="quote">
+            <p class="display-it reveal d2">Schwarz wie der Teufel, heiß wie die Hölle, rein wie ein Engel, süß wie die Liebe.</p>
+            <footer class="by reveal d4"><span class="rule"></span><span class="label">Charles-Maurice de Talleyrand, zugeschrieben</span></footer>
+        </blockquote>
+        <div class="pagenum">06 / 08</div>
+    </section>
+
+    <!-- ============ 07 LEDGER ============ -->
+    <section class="slide s-ledger" aria-label="Zubereitungsarten">
+        <div class="bloom sun-bloom"></div>
+        <div class="head">
+            <h2 class="headline-sm reveal d1">Vier Wege zur Tasse</h2>
+            <span class="label reveal d1">Zubereitung</span>
+        </div>
+        <div class="table">
+            <div class="ledger-row th reveal d2"><span class="label-sm">Nr.</span><span class="label-sm">Methode</span><span class="label-sm">Charakter</span><span class="label-sm right">Zeit</span></div>
+            <div class="ledger-row reveal d2"><span class="mono">01</span><span class="title">Espresso</span><span class="body">Konzentriert, mit Crema, unter 9 bar Druck</span><span class="mono right">25 s</span></div>
+            <div class="ledger-row reveal d3"><span class="mono">02</span><span class="title">Handfilter</span><span class="body">Klar, fruchtig, betont die Herkunft</span><span class="mono right">3–4 min</span></div>
+            <div class="ledger-row reveal d4"><span class="mono">03</span><span class="title">French Press</span><span class="body">Vollmundig, mit feinen Schwebstoffen</span><span class="mono right">4 min</span></div>
+            <div class="ledger-row reveal d5"><span class="mono">04</span><span class="title">Cold Brew</span><span class="body">Mild, wenig Säure, kalt angesetzt</span><span class="mono right">12–24 h</span></div>
+        </div>
+        <div class="pagenum">07 / 08</div>
+    </section>
+
+    <!-- ============ 08 ABSCHLUSS ============ -->
+    <section class="slide s-close" aria-label="Abschluss">
+        <div class="tiles" aria-hidden="true">
+            <div class="tile" style="grid-column:1;grid-row:1/3"></div>
+            <div class="tile" style="grid-column:4;grid-row:2/4"></div>
+        </div>
+        <div class="bloom sun-bloom"></div>
+        <div class="center">
+            <div class="label reveal d1">Zum Schluss</div>
+            <h2 class="display-md reveal d2">Danke.</h2>
+            <p class="display-it reveal d3">Zeit für eine Tasse – und Ihre Fragen.</p>
+        </div>
+        <div class="footer-band">
+            <div class="reveal d4"><span class="label-sm">Thema</span><p class="body">Kaffee – eine kurze Kulturgeschichte</p></div>
+            <div class="reveal d4"><span class="label-sm">Format</span><p class="body">HTML-Präsentation, eine einzige Datei</p></div>
+            <div class="reveal d5"><span class="label-sm">Steuerung</span><p class="body">Pfeiltasten, Leertaste oder Wischen</p></div>
+            <div class="reveal d5"><span class="label-sm">Bearbeiten</span><p class="body">Taste E drücken und Text anklicken</p></div>
+        </div>
+        <div class="pagenum">08 / 08</div>
+    </section>
+
+</main>
+</div>
+
+<div class="nav-hint">← / → · Leertaste · E = bearbeiten</div>
+<div class="edit-hotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Bearbeiten (E)">✎ Bearbeiten</button>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   Bühnen-Skalierung, Tastatur, Wischen, Mausrad
+   =========================================== */
+class SlidePresentation {
+    constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.stage = document.getElementById('deckStage');
+        this.progress = document.getElementById('progress');
+        this.current = 0;
+        this.wheelLock = false;
+        this.setupStageScale();
+        this.setupKeyboardNav();
+        this.setupTouchNav();
+        this.setupWheelNav();
+        const fromHash = parseInt(location.hash.slice(1), 10);
+        this.showSlide(Number.isFinite(fromHash) ? fromHash - 1 : 0);
+    }
+    setupStageScale() {
+        const scale = () => {
+            const f = Math.min(innerWidth / 1920, innerHeight / 1080);
+            const x = (innerWidth - 1920 * f) / 2, y = (innerHeight - 1080 * f) / 2;
+            this.stage.style.transform = `translate(${x}px, ${y}px) scale(${f})`;
+        };
+        scale();
+        addEventListener('resize', scale);
+    }
+    setupKeyboardNav() {
+        document.addEventListener('keydown', (e) => {
+            if (document.body.classList.contains('editing')) return;
+            if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); this.next(); }
+            if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); this.prev(); }
+            if (e.key === 'Home') this.showSlide(0);
+            if (e.key === 'End') this.showSlide(this.slides.length - 1);
+        });
+    }
+    setupTouchNav() {
+        let sx = 0, sy = 0;
+        document.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+        document.addEventListener('touchend', (e) => {
+            if (document.body.classList.contains('editing')) return;
+            const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) dx < 0 ? this.next() : this.prev();
+            else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) e.changedTouches[0].clientX > innerWidth / 2 ? this.next() : this.prev();
+        });
+    }
+    setupWheelNav() {
+        addEventListener('wheel', (e) => {
+            if (this.wheelLock || Math.abs(e.deltaY) < 20) return;
+            this.wheelLock = true;
+            e.deltaY > 0 ? this.next() : this.prev();
+            setTimeout(() => (this.wheelLock = false), 800);
+        }, { passive: true });
+    }
+    next() { this.showSlide(this.current + 1); }
+    prev() { this.showSlide(this.current - 1); }
+    showSlide(i) {
+        this.current = Math.max(0, Math.min(i, this.slides.length - 1));
+        this.slides.forEach((s, n) => {
+            s.classList.toggle('active', n === this.current);
+            s.classList.toggle('visible', n === this.current);
+        });
+        this.progress.style.width = ((this.current + 1) / this.slides.length * 100) + '%';
+        history.replaceState(null, '', '#' + (this.current + 1));
+    }
+}
+const deck = new SlidePresentation();
+
+/* ===========================================
+   INLINE EDITOR — Text direkt im Browser ändern
+   E = an/aus · Strg+S = HTML-Datei speichern
+   =========================================== */
+const editor = {
+    isActive: false,
+    key: 'kaffee-deck-edits',
+    targets() { return document.querySelectorAll('.slide h1, .slide h2, .slide p, .slide .label, .slide .label-sm, .slide .t, .slide .title, .slide .country, .slide .fig, .slide .date-rail'); },
+    toggleEditMode() {
+        this.isActive = !this.isActive;
+        document.body.classList.toggle('editing', this.isActive);
+        btn.classList.toggle('active', this.isActive);
+        this.targets().forEach((el) => el.setAttribute('contenteditable', this.isActive ? 'true' : 'false'));
+        if (!this.isActive) this.save();
+    },
+    save() {
+        try { localStorage.setItem(this.key, JSON.stringify([...this.targets()].map((el) => el.innerHTML))); } catch (e) {}
+    },
+    restore() {
+        try {
+            const data = JSON.parse(localStorage.getItem(this.key) || 'null');
+            if (data) this.targets().forEach((el, i) => { if (data[i] != null) el.innerHTML = data[i]; });
+        } catch (e) {}
+    },
+    download() {
+        this.targets().forEach((el) => el.removeAttribute('contenteditable'));
+        document.body.classList.remove('editing');
+        const blob = new Blob(['<!DOCTYPE html>\n' + document.documentElement.outerHTML], { type: 'text/html' });
+        const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: 'praesentation.html' });
+        a.click();
+        if (this.isActive) { document.body.classList.add('editing'); this.targets().forEach((el) => el.setAttribute('contenteditable', 'true')); }
+    }
+};
+const btn = document.getElementById('editToggle');
+const hotzone = document.querySelector('.edit-hotzone');
+let hideTimeout = null;
+editor.restore();
+btn.addEventListener('click', () => editor.toggleEditMode());
+hotzone.addEventListener('click', () => editor.toggleEditMode());
+const hideSoon = () => { hideTimeout = setTimeout(() => { if (!editor.isActive) btn.classList.remove('show'); }, 400); };
+hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); btn.classList.add('show'); });
+hotzone.addEventListener('mouseleave', hideSoon);
+btn.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+btn.addEventListener('mouseleave', hideSoon);
+document.addEventListener('input', () => editor.save());
+document.addEventListener('keydown', (e) => {
+    if ((e.key === 'e' || e.key === 'E') && e.target.getAttribute('contenteditable') !== 'true') { e.preventDefault(); editor.toggleEditMode(); }
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); editor.download(); }
+});
+</script>
+</body>
+</html>
