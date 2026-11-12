@@ -390,6 +390,9 @@ body { color: var(--ink); font-family: var(--font-body); }
 .made .body .mono { font-size: 24px; color: var(--on-red); }
 .points li { font-size: 50px; }
 
+.half.then { position: relative; padding-right: 330px; }
+.guillo-img { position: absolute; right: 34px; top: 26px; bottom: 26px; width: 270px; height: calc(100% - 52px); max-width: none; max-height: none; object-fit: contain; object-position: center bottom; }
+
 /* ===========================================
    CHROME AUSSERHALB DER BÜHNE — Fortschritt, Notizen, Bearbeiten
    =========================================== */
@@ -552,8 +555,8 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
                 <span class="mono">1789 · gedacht</span>
                 <h3 class="h2">Gleich und schmerzlos</h3>
                 <p class="say">Gleiche Strafe für alle</p>
-                <!-- Bildplatzhalter: historischen Guillotine-Stich hier einfügen -->
-                <div class="slot" id="slot-guillotine"><span>Guillotine-Stich</span></div>
+                <!-- Historischer Stich einer Guillotine, rechts in der Karte -->
+                <img class="guillo-img" src="assets/guillotine.jpg" alt="Historischer Stich einer Guillotine">
             </article>
             <article class="half now reveal d3">
                 <span class="mono">1793/94 · geworden</span>
