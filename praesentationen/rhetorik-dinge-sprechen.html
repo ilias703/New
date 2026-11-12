@@ -1,33 +1,38 @@
-<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head><body>
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dinge sprechen</title>
+
+<!-- Fonts: Archivo (schmal, fett, mit Kursive) + IBM Plex Mono -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,400..800;1,62..125,400..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 
 <style>
 /* ===========================================
    THEME — Schwarz-Weiß-Plakat
-   Layout: Schweizer Plakatraster, harte schwarze Linien, ein einziges Signalrot.
-   Bewusst ein einziger heller Look (Plakat), alle Farben explizit gesetzt.
+   Schweizer Plakatraster, harte schwarze Linien, ein einziges Signalrot.
+   Farben hier ändern = ganzes Deck ändert sich.
    =========================================== */
 :root {
     --paper: #ffffff;
     --ink: #0b0b0b;
     --ink-2: #3a3a3a;
-    --grey: #8a8a8a;
-    --line: #0b0b0b;
+    --grey: #6e6e6e;
     --red: #e4002b;
     --on-red: #ffffff;
 
     --font-display: 'Archivo', 'Arial Narrow', sans-serif;
-    --font-body: 'Archivo', system-ui, sans-serif;
-    --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+    --font-body: 'Archivo', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 
-    --pad: 110px;
-    --rule: 8px;
+    --pad: 110px;          /* seitlicher Rand der Folie */
+    --rule: 8px;           /* dicke Plakatlinie über Karten */
     --ease: cubic-bezier(0.7, 0, 0.2, 1);
 
-    --stage-bg: #d9d9d6;
+    --stage-bg: #d9d9d6;   /* Fläche um die 16:9-Bühne */
     --slide-bg: var(--paper);
     color-scheme: light;
 }
@@ -35,25 +40,140 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 /* ===========================================
-   FIXED 16:9 STAGE (viewport-base.css, vollständig)
+   FIXED 16:9 STAGE — viewport-base.css (vollständig)
    =========================================== */
-html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
-.deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
-.deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff); }
-.slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg, #fff); }
-.slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
-img, video, canvas, svg { max-width: 100%; max-height: 100%; }
-.deck-controls { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1000; }
-@media print {
-    html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
-    .deck-viewport { position: static; overflow: visible; background: #fff; }
-    .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
-    .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
-    .slide:last-child { break-after: auto; page-break-after: auto; }
-    .deck-controls { display: none !important; }
+/* ===========================================
+   FIXED 16:9 STAGE: MANDATORY BASE STYLES
+   Include this ENTIRE file in every presentation.
+   Slides are authored at 1920×1080 and scaled as a whole.
+   =========================================== */
+
+/* 1. Lock the browser viewport */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
 }
+
+/* 2. Full-window deck viewport */
+.deck-viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+
+/* 3. Fixed 16:9 design canvas.
+   JavaScript sets transform: translate(...) scale(...). */
+.deck-stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    transform-origin: 0 0;
+    background: var(--slide-bg, #fff);
+}
+
+/* 4. Slides stack inside the fixed stage.
+   Content must be laid out at 1920×1080, not reflowed per device. */
+.slide {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--slide-bg, #fff);
+}
+
+.slide.active,
+.slide.visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+
+/* 5. Keep media inside authored slide bounds */
+img,
+video,
+canvas,
+svg {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* 6. Presentation chrome stays outside the slide design system */
+.deck-controls {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+/* 7. Print one fixed-size slide per page */
+@media print {
+    html,
+    body {
+        width: 1920px;
+        height: auto;
+        overflow: visible;
+        background: #fff;
+    }
+
+    .deck-viewport {
+        position: static;
+        overflow: visible;
+        background: #fff;
+    }
+
+    .deck-stage {
+        position: static;
+        width: auto;
+        height: auto;
+        transform: none !important;
+        background: none;
+    }
+
+    .slide {
+        position: relative;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        width: 1920px;
+        height: 1080px;
+        break-after: page;
+        page-break-after: always;
+    }
+
+    .slide:last-child {
+        break-after: auto;
+        page-break-after: auto;
+    }
+
+    .deck-controls {
+        display: none !important;
+    }
+}
+
+/* 8. Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+    }
 }
 
 /* ===========================================
@@ -61,25 +181,39 @@ img, video, canvas, svg { max-width: 100%; max-height: 100%; }
    =========================================== */
 body { color: var(--ink); font-family: var(--font-body); }
 .slide { color: var(--ink); transition: opacity 0.3s linear, visibility 0.3s; }
-.eyebrow { font-family: var(--font-mono); font-size: 24px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase; color: var(--ink); display: flex; gap: 18px; align-items: center; }
-.eyebrow::before { content: ""; width: 22px; height: 22px; background: var(--ink); flex: none; }
-.h-hero, .h1, .h2, .h3 { font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; letter-spacing: -0.01em; text-wrap: balance; }
-.h-hero { font-size: 250px; line-height: 0.84; }
-.h1 { font-size: 132px; line-height: 0.88; }
-.h2 { font-size: 92px; line-height: 0.9; }
-.h3 { font-size: 60px; line-height: 0.92; }
-.lead { font-size: 42px; line-height: 1.3; font-weight: 500; color: var(--ink); max-width: 1350px; }
-.body { font-size: 32px; line-height: 1.38; color: var(--ink-2); }
-.mono { font-family: var(--font-mono); font-size: 22px; color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.02em; }
-.accent { color: var(--red); }
 
-.slide-inner { position: absolute; inset: 0; padding: 96px var(--pad) 110px; display: flex; flex-direction: column; }
-.pagenum { position: absolute; right: var(--pad); bottom: 44px; font-family: var(--font-mono); font-size: 22px; font-weight: 500; color: var(--ink); }
-.slide::after { content: ""; position: absolute; left: var(--pad); right: var(--pad); bottom: 84px; height: 2px; background: var(--ink); }
-.s-title::after, .s-end::after { display: none; }
+.eyebrow { font-family: var(--font-mono); font-size: 24px; font-weight: 500; letter-spacing: 0.02em; text-transform: uppercase; display: flex; gap: 18px; align-items: center; }
+.eyebrow::before { content: ""; width: 22px; height: 22px; background: currentColor; flex: none; }
+
+.h-hero, .h1, .h2, .h3 { font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; letter-spacing: -0.01em; text-wrap: balance; }
+.h-hero { font-size: 250px; line-height: 0.86; }
+.h1 { font-size: 128px; line-height: 0.9; }
+.h2 { font-size: 92px; line-height: 0.92; }
+.h3 { font-size: 58px; line-height: 0.95; }
+.lead { font-size: 40px; line-height: 1.28; font-weight: 500; }
+.body { font-size: 30px; line-height: 1.36; color: var(--ink-2); }
+.mono { font-family: var(--font-mono); font-size: 22px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.02em; color: var(--ink-2); }
+.small { font-size: 24px; line-height: 1.4; color: var(--grey); }
+
+/* Bühnenraster jeder Inhaltsfolie */
+.slide-inner { position: absolute; inset: 0; padding: 92px var(--pad) 120px; display: flex; flex-direction: column; }
+.slide-inner > .h2 { margin-top: 24px; }
+.pagenum { position: absolute; right: var(--pad); bottom: 40px; font-family: var(--font-mono); font-size: 22px; font-weight: 500; }
+.slide::after { content: ""; position: absolute; left: var(--pad); right: var(--pad); bottom: 82px; height: 2px; background: currentColor; }
+.s-title::after { display: none; }
 
 /* „Karte“ = Plakatfeld: keine Rundung, keine Fläche, harte Linie oben */
-.card { border-top: var(--rule) solid var(--ink); background: none; }
+.card { border-top: var(--rule) solid var(--ink); }
+.card.hot { border-top-color: var(--red); }
+
+/* Aufzählung mit Quadrat statt Punkt */
+.ticks { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.ticks li { position: relative; padding-left: 34px; font-size: 30px; line-height: 1.3; }
+.ticks li::before { content: ""; position: absolute; left: 0; top: 0.42em; width: 14px; height: 14px; background: currentColor; }
+
+/* Bildplatzhalter — Referent fügt das Bild selbst ein */
+.slot { border: 3px dashed var(--grey); display: grid; place-items: center; background: repeating-linear-gradient(135deg, transparent 0 22px, rgba(0,0,0,0.04) 22px 44px); background-size: cover; background-position: center; }
+.slot span { font-family: var(--font-mono); font-size: 20px; text-transform: uppercase; color: var(--grey); }
 
 /* ===========================================
    ANIMATIONEN — harte Wischer statt Weichzeichnen
@@ -98,159 +232,144 @@ body { color: var(--ink); font-family: var(--font-body); }
 /* ===========================================
    01 TITEL — rotes Quadrat als „Ding“
    =========================================== */
-.s-title .words { position: absolute; left: var(--pad); top: 96px; bottom: 96px; width: 1200px; display: flex; flex-direction: column; }
-.s-title .h1 { margin-top: auto; font-size: 150px; }
+.s-title .words { position: absolute; left: var(--pad); top: 92px; bottom: 92px; width: 1180px; display: flex; flex-direction: column; }
+.s-title .h1 { margin-top: auto; font-size: 146px; }
 .s-title .sub { margin-top: 40px; font-size: 44px; font-weight: 500; }
-.s-title .meta { margin-top: 64px; padding-top: 24px; border-top: 2px solid var(--ink); font-family: var(--font-mono); font-size: 24px; text-transform: uppercase; }
-.blocks { position: absolute; right: 0; top: 0; width: 600px; height: 1080px; }
-.blocks div { position: absolute; }
-.b-slab { right: 0; top: 0; width: 520px; height: 520px; background: var(--red); }
-.b-deep { right: 0; top: 520px; width: 520px; height: 40px; background: var(--ink); }
-.b-warm, .b-sig, .pill { display: none; }
+.s-title .meta { margin-top: 60px; padding-top: 24px; border-top: 2px solid var(--ink); font-family: var(--font-mono); font-size: 24px; text-transform: uppercase; }
+.b-slab { position: absolute; right: 0; top: 0; width: 520px; height: 520px; background: var(--red); }
+.b-deep { position: absolute; right: 0; top: 520px; width: 520px; height: 40px; background: var(--ink); }
 
 /* ===========================================
-   02 EINSTIEG
+   02 EINSTIEG + 11 SCHLUSS — Statement-Folien
    =========================================== */
 .s-ask .h-hero { margin-top: auto; font-size: 270px; }
-.s-ask .call { margin: 56px 0 40px; align-self: flex-start; padding: 20px 36px; background: var(--red); color: var(--on-red); font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 52px; letter-spacing: 0.01em; }
+.s-ask .call { margin: 56px 0 30px; align-self: flex-start; padding: 18px 34px; background: var(--red); color: var(--on-red); font-family: var(--font-mono); font-weight: 500; text-transform: uppercase; font-size: 34px; }
+
+.s-end { background: var(--ink); color: var(--paper); --slide-bg: var(--ink); }
+.s-end .h1 { margin-top: auto; max-width: 1640px; font-size: 124px; font-style: italic; text-transform: none; line-height: 0.98; }
+.s-end .thanks { margin: 64px 0 20px; align-self: flex-start; padding: 8px 30px 0; background: var(--red); color: var(--on-red); font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 180px; line-height: 0.95; }
 
 /* ===========================================
-   03 THESE
+   03 THESE — Akzentfolie in Signalrot
    =========================================== */
-.s-thesis .h-hero { margin-top: auto; font-size: 330px; }
-.s-thesis .h-hero::after { content: ""; display: inline-block; width: 0.22em; height: 0.22em; background: var(--red); margin-left: 0.04em; }
-.s-thesis .lead { margin-top: 44px; }
-.steps { margin: 64px 0 40px; display: flex; gap: 0; border-top: 2px solid var(--ink); }
-.step { flex: 1; display: flex; align-items: baseline; gap: 18px; padding: 22px 0 0; font-size: 32px; font-weight: 700; }
-.step b { font-family: var(--font-mono); font-weight: 500; font-size: 24px; }
+.s-thesis { background: var(--red); color: var(--on-red); }
+.s-thesis .h-hero { margin-top: auto; font-size: 320px; }
+.s-thesis .h-hero::after { content: ""; display: inline-block; width: 0.2em; height: 0.2em; background: var(--ink); margin-left: 0.05em; }
+.s-thesis .claims { margin-top: 48px; display: grid; grid-template-columns: 1fr 1.25fr; gap: 64px; }
+.s-thesis .claims p { padding-top: 22px; border-top: 3px solid var(--on-red); font-size: 40px; line-height: 1.25; font-weight: 600; }
+.s-thesis .refs { margin: 48px 0 10px; font-family: var(--font-mono); font-size: 24px; text-transform: uppercase; }
 
 /* ===========================================
-   04 DREI BEGRIFFE
+   04 DREI BEGRIFFE — Begriff links, Erklärung rechts
    =========================================== */
-.terms { margin-block: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; }
-.term { padding-top: 34px; display: flex; flex-direction: column; gap: 34px; min-height: 560px; }
-.term .h3 { min-height: 112px; }
-.term .say { font-size: 50px; line-height: 1.12; font-weight: 600; letter-spacing: -0.01em; }
-.term .mono { margin-top: auto; }
-.term:nth-child(2) { border-top-color: var(--red); }
+.terms { margin-top: auto; margin-bottom: 10px; display: flex; flex-direction: column; }
+.term { display: grid; grid-template-columns: 560px 1fr; gap: 60px; padding: 28px 0 32px; }
+.term .h3 { font-size: 62px; }
+.term .say { font-size: 36px; line-height: 1.3; font-weight: 500; }
+.term .say .q { display: block; margin-top: 10px; font-size: 28px; color: var(--ink-2); font-weight: 400; }
 
 /* ===========================================
    05 BARTHES-MODELL — Treppe aus zwei Ebenen
    =========================================== */
-.s-model .h2 { margin-top: 28px; }
-.model { margin-top: auto; margin-bottom: 40px; display: grid; grid-template-columns: repeat(5, 1fr); row-gap: 0; column-gap: 0; }
-.cell { padding: 26px 30px 30px; border: 3px solid var(--ink); margin: 0 -3px -3px 0; display: flex; flex-direction: column; gap: 12px; min-height: 220px; background: var(--paper); }
-.cell .mono { font-size: 20px; }
-.cell .v { font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 54px; line-height: 0.95; }
-.row-myth { grid-row: 1; }
-.row-lang { grid-row: 2; }
+.model { margin-top: auto; display: grid; grid-template-columns: repeat(5, 1fr); grid-template-rows: auto 74px auto; }
+.cell { padding: 22px 26px 26px; border: 3px solid var(--ink); margin: 0 -3px 0 0; display: flex; flex-direction: column; gap: 10px; min-height: 186px; background: var(--paper); }
+.cell .mono { font-size: 19px; }
+.cell .v { font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 48px; line-height: 0.96; }
 .cell.sign { background: var(--ink); color: var(--paper); }
 .cell.sign .mono { color: #cfcfcf; }
 .cell.myth { background: var(--red); border-color: var(--red); color: var(--on-red); }
 .cell.myth .mono { color: var(--on-red); }
-.example { display: flex; align-items: baseline; gap: 28px; padding-top: 22px; border-top: 2px solid var(--ink); }
-.example .tag { flex: none; font-family: var(--font-mono); font-size: 22px; text-transform: uppercase; }
-.example .t { font-size: 36px; font-weight: 500; }
-.example .t strong { font-weight: 800; }
+.lvl { align-self: center; padding: 0 30px; font-family: var(--font-mono); font-size: 24px; font-weight: 500; text-transform: uppercase; }
+.arrow { grid-column: 3; grid-row: 2; display: grid; place-items: center; }
+.arrow svg { width: 60px; height: 74px; }
+.model-foot { margin-top: 40px; display: grid; grid-template-columns: 1fr 820px; gap: 56px; align-items: stretch; }
+.model-foot .claim { padding-top: 20px; border-top: 3px solid var(--ink); font-size: 38px; font-weight: 500; }
+.model-foot .claim strong { font-weight: 800; }
+.model-foot .box { padding: 20px 26px; border: 3px solid var(--ink); font-size: 28px; line-height: 1.3; }
+.model-foot .box .mono { display: block; font-size: 18px; margin-bottom: 6px; }
 
 /* ===========================================
-   06 STEAK, AUTO, GENIE
+   06 STEAK, AUTO, GENIE — drei Karten
    =========================================== */
-.trio { margin-block: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; }
-.obj { display: flex; flex-direction: column; min-height: 680px; border-top: none; }
-.obj .top { height: 360px; display: grid; place-items: end start; padding: 30px 34px; background: var(--ink); color: var(--paper); }
-.obj:nth-child(2) .top { background: var(--red); color: var(--on-red); }
-.obj .top .h2 { font-size: 96px; }
-.obj .bot { padding: 34px 0 0; display: flex; flex-direction: column; gap: 20px; flex: 1; }
-.obj .say { font-size: 44px; line-height: 1.15; font-weight: 600; }
-.obj .mono { margin-top: auto; }
+.trio { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; }
+.obj { display: flex; flex-direction: column; }
+.obj .top { height: 230px; display: grid; place-items: end start; padding: 22px 28px; background: var(--ink); color: var(--paper); font-family: var(--font-mono); font-size: 30px; font-weight: 500; }
+.obj .top.slot { background-color: transparent; color: var(--grey); place-items: center; }
+.obj .bot { padding-top: 26px; display: flex; flex-direction: column; gap: 18px; }
+.obj .h3 { font-size: 54px; min-height: 104px; }
+.obj .ticks li { font-size: 28px; }
 
 /* ===========================================
-   07 GESCHICHTE WIRD NATUR
+   07 GESCHICHTE WIRD NATUR — drei Spalten
    =========================================== */
-.s-nature .h1 { margin-top: 40px; max-width: 1650px; }
+.s-nature .h1 { margin-top: 24px; font-size: 112px; max-width: 1650px; }
 .verbs { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; }
-.verb { padding-top: 30px; display: flex; flex-direction: column; gap: 18px; min-height: 300px; }
-.verb .h3 { font-size: 72px; }
-.verb .body { font-size: 32px; }
-.verb.alibi { border-top-color: var(--red); }
-.verb.alibi .tag { font-family: var(--font-mono); font-size: 20px; text-transform: uppercase; color: var(--red); order: 3; }
-.s-nature .foot { margin: 40px 0 30px; font-size: 32px; }
+.verb { padding-top: 26px; display: flex; flex-direction: column; gap: 18px; }
+.verb .h3 { font-size: 64px; }
+.verb .body { font-size: 28px; }
+.s-nature .foot { margin-top: 40px; padding: 22px 28px; background: var(--ink); color: var(--paper); font-size: 30px; line-height: 1.3; }
 .s-nature .foot strong { font-weight: 800; }
 
 /* ===========================================
    08 GUILLOTINE — gedacht vs. geworden
    =========================================== */
-.split { margin-top: 48px; display: grid; grid-template-columns: 1fr 1fr; gap: 0; flex: 1; }
-.half { padding: 48px 56px; display: flex; flex-direction: column; gap: 22px; }
+.split { margin-top: 32px; display: grid; grid-template-columns: 1fr 1fr; }
+.half { padding: 30px 44px 34px; display: flex; flex-direction: column; gap: 16px; }
 .half.then { border: 3px solid var(--ink); }
 .half.now { background: var(--ink); color: var(--paper); }
-.half.now .mono, .half.now .body { color: #d4d4d4; }
-.half .h2 { font-size: 104px; }
-.half .body { font-size: 30px; }
-.big-num { margin-top: auto; font-family: var(--font-display); font-stretch: 62%; font-weight: 800; font-size: 220px; line-height: 0.85; color: var(--red); }
-.half .big-cap { font-size: 28px; }
-.half.then .scale { margin-top: auto; display: flex; gap: 18px; align-items: flex-end; height: 150px; }
-.half.then .scale span { flex: 1; height: 100%; border: 3px solid var(--ink); }
-.s-guillo .moral { margin: 30px 0 6px; font-size: 50px !important; font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 60px; line-height: 0.95; }
-.s-guillo .moral span { color: var(--ink); background: linear-gradient(transparent 62%, var(--red) 62%, var(--red) 92%, transparent 92%); }
+.half.now .mono { color: #d4d4d4; }
+.half .h2 { font-size: 72px; }
+.half .ticks li { font-size: 27px; }
+.half.then .slot { margin-top: auto; height: 116px; }
+.half.now .ticks li:nth-child(3) { color: var(--red); font-weight: 700; }
+.s-guillo .moral { margin-top: auto; font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 56px; line-height: 1.02; }
+.s-guillo .moral span { display: inline-block; background: linear-gradient(transparent 60%, var(--red) 60%, var(--red) 92%, transparent 92%); }
 
 /* ===========================================
-   09 WERBUNG — drei Slogans
+   09 WERBUNG — Text links, Slogans rechts
    =========================================== */
-.s-ads .h2 { margin-top: 28px; }
-.s-ads .verbs-line { margin-top: 20px; font-family: var(--font-mono); font-size: 26px; text-transform: uppercase; }
-.slogans { margin-top: auto; margin-bottom: 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 56px; }
-.slogan { padding-top: 30px; display: flex; flex-direction: column; min-height: 520px; }
-.slogan q { font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 104px; line-height: 0.88; quotes: "„" "“"; }
-.slogan .src { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
-.slogan .src .body { font-size: 28px; }
-.slogan:nth-child(2) { border-top-color: var(--red); }
+.ads { margin-top: auto; display: grid; grid-template-columns: 1fr 760px; gap: 80px; }
+.ads .left { display: flex; flex-direction: column; gap: 26px; padding-top: 26px; }
+.ads .left .lead { font-size: 44px; font-weight: 600; line-height: 1.2; }
+.ads .left .body { font-size: 30px; }
+.ads .right { display: flex; flex-direction: column; gap: 22px; }
+.slogan { padding-top: 16px; display: grid; grid-template-columns: 1fr auto; column-gap: 24px; row-gap: 6px; align-items: baseline; }
+.slogan q { grid-column: 1 / -1; font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 62px; line-height: 0.95; quotes: "„" "“"; }
+.slogan .mono { font-size: 20px; }
+.slogan .body { font-size: 24px; text-align: right; }
 
 /* ===========================================
-   10 MITNEHMEN
+   10 MITNEHMEN — große Ziffern + Karte
    =========================================== */
-.take { margin-top: 56px; display: grid; grid-template-columns: 1.4fr 1fr; gap: 80px; flex: 1; margin-bottom: 30px; }
-.points { list-style: none; display: flex; flex-direction: column; justify-content: center; }
-.points li { display: grid; grid-template-columns: 110px 1fr; gap: 24px; align-items: baseline; padding: 30px 0; border-top: 3px solid var(--ink); font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 72px; line-height: 0.92; }
-.points li b { font-family: var(--font-mono); font-weight: 500; font-size: 30px; }
-.made { padding: 48px; display: flex; flex-direction: column; gap: 24px; background: var(--red); color: var(--on-red); border-top: none; }
-.made .mono, .made .body { color: var(--on-red); }
-.made .h3 { font-size: 84px; }
-.timeline { margin-top: auto; display: flex; flex-direction: column; gap: 18px; }
-.tl { display: grid; grid-template-columns: 130px 1fr; gap: 20px; align-items: baseline; padding-top: 18px; border-top: 2px solid var(--on-red); }
-.tl .mono { font-size: 28px; }
-.tl .body { font-size: 30px; }
+.take { margin-top: auto; display: grid; grid-template-columns: 1.45fr 1fr; gap: 80px; }
+.points { list-style: none; display: flex; flex-direction: column; }
+.points li { display: grid; grid-template-columns: 130px 1fr; gap: 20px; align-items: center; padding: 22px 0; border-top: 3px solid var(--ink); font-size: 44px; line-height: 1.15; font-weight: 600; }
+.points li b { font-family: var(--font-display); font-stretch: 62%; font-weight: 800; font-size: 120px; line-height: 0.85; color: var(--red); }
+.made { padding: 40px 44px; display: flex; flex-direction: column; gap: 22px; background: var(--red); color: var(--on-red); border-top: none; }
+.made .mono { color: var(--on-red); }
+.made .h3 { font-size: 80px; }
+.made .body { color: var(--on-red); font-size: 32px; }
 
 /* ===========================================
-   11 SCHLUSS
+   12 DISKUSSION — zwei Fragen
    =========================================== */
-.s-end { background: var(--ink); color: var(--paper); }
-.s-end .eyebrow { color: var(--paper); }
-.s-end .eyebrow::before { background: var(--paper); }
-.s-end .h1 { margin-top: auto; max-width: 1600px; font-size: 128px; }
-.s-end .thanks { margin-top: 60px; align-self: flex-start; padding: 6px 30px 0; background: var(--red); color: var(--on-red); font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 200px; line-height: 0.95; }
-.s-end .blocks2 { display: none; }
+.questions { margin-top: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
+.question { padding-top: 28px; display: flex; flex-direction: column; gap: 22px; }
+.question .num { font-family: var(--font-display); font-stretch: 62%; font-weight: 800; font-size: 110px; line-height: 0.85; color: var(--red); }
+.question p { font-size: 48px; line-height: 1.18; font-weight: 600; }
 
 /* ===========================================
-   12 DISKUSSION
+   13 LITERATUR
    =========================================== */
-.questions { margin-block: auto; display: grid; grid-template-columns: 1fr 1fr; gap: 80px; }
-.question { padding-top: 34px; display: flex; flex-direction: column; gap: 30px; min-height: 620px; }
-.question .num { font-family: var(--font-mono); font-size: 30px; font-weight: 500; }
-.question .h2 { font-size: 96px; }
-.question:nth-child(2) { border-top-color: var(--red); }
+.refs-list { margin-top: auto; list-style: none; display: flex; flex-direction: column; }
+.refs-list li { padding: 20px 0 22px 0; border-top: 2px solid var(--ink); font-size: 28px; line-height: 1.38; display: grid; grid-template-columns: 300px 1fr; gap: 40px; }
+.refs-list li b { font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 40px; line-height: 1; }
 
 /* ===========================================
-   CHROME AUSSERHALB DER BÜHNE
+   CHROME AUSSERHALB DER BÜHNE — Fortschritt, Notizen, Bearbeiten
    =========================================== */
 .progress { position: fixed; left: 0; top: 0; height: 5px; background: var(--red); width: 0; transition: width 0.3s var(--ease); z-index: 1000; }
-.chrome-btn {
-    position: fixed; z-index: 1001;
-    font-family: var(--font-mono); font-size: 13px; font-weight: 500; text-transform: uppercase; color: var(--ink);
-    background: var(--paper); border: 2px solid var(--ink); border-radius: 0;
-    padding: 8px 14px; cursor: pointer;
-}
+.chrome-btn { position: fixed; z-index: 1001; font-family: var(--font-mono); font-size: 13px; font-weight: 500; text-transform: uppercase; color: var(--ink); background: var(--paper); border: 2px solid var(--ink); border-radius: 0; padding: 8px 14px; cursor: pointer; }
 .chrome-btn:focus-visible { outline: 3px solid var(--red); outline-offset: 2px; }
 .chrome-btn[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 #notesBtn { top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); }
@@ -258,24 +377,20 @@ body { color: var(--ink); font-family: var(--font-body); }
 #editToggle.show, #editToggle[aria-pressed="true"] { opacity: 1; pointer-events: auto; }
 .edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 1000; }
 
-.notes {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1002;
-    max-height: 42%; overflow-y: auto;
-    background: var(--paper); color: var(--ink);
-    border-top: 4px solid var(--ink);
-    padding: 18px max(24px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(24px, env(safe-area-inset-left, 0px));
-}
+.notes { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1002; max-height: 45%; overflow-y: auto; background: var(--paper); color: var(--ink); border-top: 4px solid var(--ink); padding: 18px max(24px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(24px, env(safe-area-inset-left, 0px)); }
 .notes-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 10px; font-family: var(--font-mono); font-size: 13px; text-transform: uppercase; color: var(--ink-2); }
 .notes-head strong { font-family: var(--font-body); font-size: 17px; color: var(--ink); font-weight: 800; text-transform: none; }
-.notes-body { max-width: 72ch; font-size: 18px; line-height: 1.6; color: var(--ink); }
+.notes-body { max-width: 75ch; font-size: 18px; line-height: 1.6; }
 .notes-body p + p { margin-top: 10px; }
+.notes-body .time { font-family: var(--font-mono); font-size: 14px; font-weight: 500; }
 .notes-body .cue { font-family: var(--font-mono); font-size: 14px; color: var(--red); }
-.notes-body .new { font-family: var(--font-mono); font-size: 12px; color: var(--red); text-transform: uppercase; }
 .nav-btns { display: flex; gap: 8px; }
 .nav-btns button { font-family: var(--font-mono); font-size: 13px; text-transform: uppercase; padding: 6px 12px; border: 2px solid var(--ink); border-radius: 0; background: var(--paper); color: var(--ink); cursor: pointer; }
 
 body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-offset: 6px; }
 </style>
+</head>
+<body>
 
 <div class="progress" id="progress"></div>
 <div class="deck-viewport">
@@ -287,19 +402,14 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
         <div class="eyebrow reveal d1">Referat · Sitzung 8</div>
         <h1 class="h1 reveal d2">Kollektives Selbstverständnis und kollektive Symbolisierung</h1>
         <p class="sub reveal d3">Mentalität und Kommunikation</p>
-        <p class="meta reveal d4">Ilias Ainous · HTWG Konstanz · Wintersemester 2026/27</p>
+        <p class="meta reveal d4">[Dein Name] · HTWG Konstanz · Wintersemester 2026/27</p>
     </div>
-    <div class="blocks" aria-hidden="true">
+    <div aria-hidden="true">
         <div class="b-slab grow"></div>
-        <div class="b-warm grow"></div>
         <div class="b-deep grow"></div>
-        <div class="b-sig reveal d4"></div>
-        <div class="pill p1 reveal d3"></div><div class="pill p2 reveal d3"></div>
-        <div class="pill p3 reveal d4"></div><div class="pill p4 reveal d4"></div>
-        <div class="pill p5 reveal d5"></div><div class="pill p6 reveal d5"></div>
     </div>
-    <template class="notes-src" data-time="vor dem Start">
-        <p><span class="cue">[Kurz stehen lassen, Blickkontakt, dann direkt zur nächsten Folie.]</span></p>
+    <template class="notes-src">
+        <p>Titelfolie. Kurz stehen lassen, Blickkontakt, dann ohne lange Einleitung zur nächsten Folie.</p>
     </template>
 </section>
 
@@ -311,121 +421,133 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
         <p class="call reveal d3">Ruft einfach rein.</p>
     </div>
     <div class="pagenum">02</div>
-    <template class="notes-src" data-time="0:00–1:00">
-        <p>Bevor ich anfange, eine kurze Frage an euch: Was ist typisch deutsch? Ruft einfach rein.</p>
-        <p><span class="cue">[Drei, vier Antworten abwarten, nicken, nicht kommentieren.]</span></p>
+    <template class="notes-src">
+        <p><span class="time">(0:00–1:00)</span> Bevor ich anfange, eine kurze Frage an euch: Was ist typisch deutsch? Ruft einfach rein.</p>
+        <p><span class="cue">[Drei, vier Antworten abwarten – z. B. Pünktlichkeit, Autos, Bier, Brot, Mülltrennung. Nicken, nicht kommentieren.]</span></p>
         <p>Danke. Fällt euch etwas auf? Niemand hat das Grundgesetz genannt. Oder Kant. Ihr habt Dinge genannt. Und Gewohnheiten. Ein Auto. Ein Brot. Eine Uhr, die pünktlich ist.</p>
         <p>Genau darum geht es heute: wie eine Gemeinschaft sich selbst versteht – und warum sie das an Dingen festmacht.</p>
     </template>
 </section>
 
-<!-- ================= 03 THESE ================= -->
+<!-- ================= 03 THESE (Akzentfolie) ================= -->
 <section class="slide s-thesis" aria-label="These">
     <div class="slide-inner">
         <div class="eyebrow reveal d1">These</div>
         <h2 class="h-hero reveal d2">Dinge sprechen.</h2>
-        <p class="lead reveal d3">Kommunikation wirkt, wenn sie an Symbole anknüpft – und wird zum Mythos, wenn sie Gemachtes als natürlich ausgibt.</p>
-        <div class="steps">
-            <span class="step reveal d4"><b>1</b>Barthes</span>
-            <span class="step reveal d5"><b>2</b>Arasse</span>
-            <span class="step reveal d6"><b>3</b>Gries / Ilgen / Schindelbeck</span>
+        <div class="claims">
+            <p class="reveal d3">An Steak, Auto und Maschine macht eine Gemeinschaft fest, wer sie ist.</p>
+            <p class="reveal d4">Kommunikation wirkt, wenn sie an diese Symbole anknüpft – und sie wird zum Mythos, wenn sie Gemachtes als natürlich ausgibt.</p>
         </div>
+        <p class="refs reveal d5">Barthes · Arasse · Gries / Ilgen / Schindelbeck</p>
     </div>
     <div class="pagenum">03</div>
-    <template class="notes-src" data-time="1:00–1:30">
-        <p>Meine These vorweg: Dinge sprechen. <span class="cue">[Pause.]</span> Ob Steak, Auto oder Maschine – an ihnen macht eine Gemeinschaft fest, wer sie ist. Kommunikation wirkt, wenn sie an diese Symbole anknüpft. Und sie wird zum Mythos, wenn sie Gemachtes als natürlich ausgibt.</p>
+    <template class="notes-src">
+        <p><span class="time">(1:00–1:30)</span> Meine These vorweg: Dinge sprechen. <span class="cue">[Pause.]</span> Ob Steak, Auto oder Maschine – an ihnen macht eine Gemeinschaft fest, wer sie ist. Kommunikation wirkt, wenn sie an diese Symbole anknüpft. Und sie wird zum Mythos, wenn sie Gemachtes als natürlich ausgibt.</p>
         <p>Ich zeige das in drei Schritten: mit Roland Barthes, mit Daniel Arasse und mit der Werbegeschichte von Gries, Ilgen und Schindelbeck.</p>
     </template>
 </section>
 
 <!-- ================= 04 DREI BEGRIFFE ================= -->
-<section class="slide s-terms" aria-label="Drei Begriffe">
+<section class="slide s-terms" aria-label="Drei Begriffe vorweg">
     <div class="slide-inner">
-        <div class="eyebrow reveal d1">Drei Begriffe vorweg</div>
+        <div class="eyebrow reveal d1">Begriffe</div>
+        <h2 class="h2 reveal d1">Drei Begriffe vorweg</h2>
         <div class="terms">
             <article class="card term reveal d2">
                 <h3 class="h3">Mentalität</h3>
-                <p class="say">Was alle für selbstverständlich halten.</p>
-                <p class="mono">Le Goff: Caesar und der letzte Soldat seiner Legionen</p>
+                <p class="say">Was alle für selbstverständlich halten, ohne darüber nachzudenken. <span class="q">Le Goff: das, was Caesar mit dem letzten Soldaten seiner Legionen teilt.</span></p>
             </article>
-            <article class="card term reveal d3">
+            <article class="card hot term reveal d3">
                 <h3 class="h3">Kollektives Selbstverständnis</h3>
-                <p class="say">„Wir sind fleißig. Wir sind pünktlich.“</p>
-                <p class="mono">Das Bild einer Gruppe von sich selbst</p>
+                <p class="say">Das Bild, das eine Gruppe von sich selbst hat: <span class="q">„Wir sind fleißig. Wir sind Tüftler. Wir sind pünktlich.“</span></p>
             </article>
             <article class="card term reveal d4">
                 <h3 class="h3">Kollektive Symbolisierung</h3>
-                <p class="say">Ein Ding, das jeder sofort versteht.</p>
-                <p class="mono">Das Selbstbild zum Anfassen</p>
+                <p class="say">Das Selbstbild braucht etwas zum Anfassen: ein Ding, ein Bild, ein Wort, das jeder sofort versteht.</p>
             </article>
         </div>
     </div>
     <div class="pagenum">04</div>
-    <template class="notes-src" data-time="1:30–2:45">
-        <p>Zuerst drei Begriffe.</p>
+    <template class="notes-src">
+        <p><span class="time">(1:30–2:45)</span> Zuerst drei Begriffe.</p>
         <p>Mentalität. Der französische Historiker Jacques Le Goff hat sie so beschrieben: Mentalität ist das, was Caesar mit dem letzten Soldaten seiner Legionen gemeinsam hat. Also nicht das, was einer bewusst denkt – sondern das, was alle für selbstverständlich halten.</p>
         <p>Kollektives Selbstverständnis ist das Bild, das eine Gruppe von sich selbst hat: Wir sind fleißig. Wir sind Tüftler. Wir sind pünktlich.</p>
         <p>Und kollektive Symbolisierung heißt: Dieses Selbstbild braucht etwas zum Anfassen. Ein Ding, ein Bild, ein Wort, das jeder sofort versteht – ohne Erklärung.</p>
     </template>
 </section>
 
-<!-- ================= 05 BARTHES-MODELL ================= -->
+<!-- ================= 05 BARTHES-MODELL (Treppe) ================= -->
 <section class="slide s-model" aria-label="Wie ein Ding zum Mythos wird">
     <div class="slide-inner">
         <div class="eyebrow reveal d1">Roland Barthes · Mythen des Alltags (1957)</div>
         <h2 class="h2 reveal d1">Wie ein Ding zum Mythos wird</h2>
         <div class="model">
-            <!-- Ebene 2 (oben, versetzt): das Zeichen wird zur Form -->
-            <div class="cell sign row-myth reveal d4" style="grid-column:3"><span class="mono">Form</span><span class="v">„Steak“</span></div>
-            <div class="cell row-myth reveal d5" style="grid-column:4"><span class="mono">Begriff</span><span class="v">Frankreich, Kraft, Blut</span></div>
-            <div class="cell myth row-myth reveal d6" style="grid-column:5"><span class="mono">Mythos</span><span class="v">Steak = Frankreich</span></div>
-            <!-- Ebene 1 (unten): Sprache -->
-            <div class="cell row-lang reveal d2" style="grid-column:1"><span class="mono">Bedeutendes</span><span class="v">Bild eines Steaks</span></div>
-            <div class="cell row-lang reveal d2" style="grid-column:2"><span class="mono">Bedeutetes</span><span class="v">gebratenes Rindfleisch</span></div>
-            <div class="cell sign row-lang reveal d3" style="grid-column:3"><span class="mono">Zeichen</span><span class="v">„Steak“</span></div>
-            <div class="row-lang reveal d3" style="grid-column:4 / 6; align-self:center; padding-left:12px;">
-                <span class="mono">Ebene 1 · Sprache</span>
+            <!-- Reihe 1: Ebene 1 · Sprache -->
+            <div class="cell reveal d2" style="grid-column:1; grid-row:1"><span class="mono">1 · Bedeutendes</span><span class="v">Bild eines Steaks</span></div>
+            <div class="cell reveal d2" style="grid-column:2; grid-row:1"><span class="mono">2 · Bedeutetes</span><span class="v">gebratenes Rindfleisch</span></div>
+            <div class="cell sign reveal d3" style="grid-column:3; grid-row:1"><span class="mono">3 · Zeichen</span><span class="v">„Steak“</span></div>
+            <div class="lvl reveal d3" style="grid-column:4 / 6; grid-row:1">Ebene 1: Sprache</div>
+            <!-- Pfeil: das Zeichen wird zur Form -->
+            <div class="arrow reveal d4" aria-hidden="true">
+                <svg viewBox="0 0 60 74"><rect x="24" y="0" width="12" height="48" fill="#0b0b0b"/><polygon points="4,44 56,44 30,74" fill="#e4002b"/></svg>
             </div>
-            <div class="row-myth reveal d4" style="grid-column:1 / 3; grid-row:1; align-self:center;">
-                <span class="mono">Ebene 2 · Mythos</span>
-            </div>
+            <!-- Reihe 2: Ebene 2 · Mythos -->
+            <div class="lvl reveal d4" style="grid-column:1 / 3; grid-row:3; text-align:right">Ebene 2: Mythos</div>
+            <div class="cell sign reveal d4" style="grid-column:3; grid-row:3"><span class="mono">I · Form</span><span class="v">das Zeichen „Steak“</span></div>
+            <div class="cell reveal d5" style="grid-column:4; grid-row:3"><span class="mono">II · Begriff</span><span class="v">Frankreich, Kraft, Blut</span></div>
+            <div class="cell myth reveal d6" style="grid-column:5; grid-row:3"><span class="mono">III · Bedeutung</span><span class="v">Mythos „Steak = Frankreich“</span></div>
         </div>
-        <div class="example reveal d6">
-            <span class="tag">Aus dem Verein</span>
-            <p class="t">Eiskoffer → <strong>„Wir trainieren härter als alle anderen.“</strong></p>
+        <div class="model-foot">
+            <p class="claim reveal d6"><strong>Den Mythos bemerkt man nicht</strong> – er wirkt natürlich.</p>
+            <p class="box reveal d6"><span class="mono">Beispiel aus dem Verein</span>Eiskoffer = „Wir trainieren härter als alle anderen.“</p>
         </div>
     </div>
     <div class="pagenum">05</div>
-    <template class="notes-src" data-time="2:45–4:15">
-        <p>Wie wird ein Ding zum Symbol? Das hat Roland Barthes in den 1950er-Jahren untersucht, in seinen „Mythen des Alltags“.</p>
-        <p>Sein Modell ist einfach. Jedes Ding hat zuerst eine wörtliche Bedeutung: Ein Steak ist ein Stück Rindfleisch. Auf diese erste Bedeutung setzt sich eine zweite: Das ganze Zeichen „Steak“ steht für etwas anderes – zum Beispiel für Frankreich. Diese zweite Ebene nennt Barthes Mythos.</p>
-        <p><span class="new">(neu)</span> Ein Beispiel aus meinem Verein: der Eiskoffer. Auf Ebene 1 ist er eine Kühlbox für Verletzungen. Auf Ebene 2 sagt er: Bei uns wird so hart trainiert, dass sich ständig einer wehtut. Wir sind Kämpfer.</p>
+    <template class="notes-src">
+        <p><span class="time">(2:45–4:15)</span> Wie wird ein Ding zum Symbol? Das hat Roland Barthes in den 1950er-Jahren untersucht, in seinen „Mythen des Alltags“.</p>
+        <p>Sein Modell ist einfach. <span class="cue">[Auf Ebene 1 zeigen.]</span> Jedes Ding hat zuerst eine wörtliche Bedeutung: Ein Steak ist ein Stück Rindfleisch. <span class="cue">[Pfeil nach unten.]</span> Auf diese erste Bedeutung setzt sich eine zweite: Das ganze Zeichen „Steak“ steht für etwas anderes – zum Beispiel für Frankreich. Diese zweite Ebene nennt Barthes Mythos.</p>
+        <p>Ein Beispiel aus meinem Verein: der Eiskoffer. Auf Ebene 1 ist er eine Kühlbox für Verletzungen. Auf Ebene 2 sagt er: Bei uns wird so hart trainiert, dass sich ständig einer wehtut. Wir sind Kämpfer.</p>
         <p>Und das Entscheidende: Den Mythos bemerkt man nicht. Er wirkt selbstverständlich. Natürlich.</p>
+        <p><span class="cue">[Begriffe nach der Übersetzung von 1964: Bedeutendes, Bedeutetes, Zeichen; im Mythos: Form, Begriff, Bedeutung. In neueren Ausgaben: Signifikant, Signifikat.]</span></p>
     </template>
 </section>
 
 <!-- ================= 06 STEAK, AUTO, GENIE ================= -->
 <section class="slide s-trio" aria-label="Steak, Auto, Genie">
     <div class="slide-inner">
-        <div class="eyebrow reveal d1">Drei Beispiele aus den Mythen des Alltags</div>
+        <div class="eyebrow reveal d1">Barthes · drei Mythen des Alltags</div>
+        <h2 class="h2 reveal d1">Steak, Auto, Genie</h2>
         <div class="trio">
-            <article class="card obj reveal d2">
-                <div class="top"><h3 class="h2">Steak &amp; Pommes</h3></div>
-                <div class="bot"><p class="say">Blut, Kraft – und Französischsein.</p><p class="mono">S. 36 ff.</p></div>
+            <article class="obj reveal d2">
+                <div class="top">01</div>
+                <div class="bot">
+                    <span class="mono">S. 36 ff.</span>
+                    <h3 class="h3">Beefsteak und Pommes frites</h3>
+                    <ul class="ticks"><li>Blut, Kraft, Stärke</li><li>Pommes frites = Französischsein</li><li>De Castries, 1954: zuerst Pommes frites</li></ul>
+                </div>
             </article>
-            <article class="card obj reveal d3">
-                <div class="top"><h3 class="h2">Citroën DS</h3></div>
-                <div class="bot"><p class="say">„Déesse“ – die Göttin. Eine Kathedrale auf Rädern.</p><p class="mono">S. 76 ff.</p></div>
+            <article class="obj reveal d3">
+                <!-- Bildplatzhalter: Foto Citroën DS hier einfügen, z. B. style="background-image:url('ds.jpg')" -->
+                <div class="top slot" id="slot-ds"><span>Foto Citroën DS</span></div>
+                <div class="bot">
+                    <span class="mono">S. 76 ff.</span>
+                    <h3 class="h3">Der neue Citroën</h3>
+                    <ul class="ticks"><li>Das Auto als gotische Kathedrale</li><li>DS = „Déesse“, die Göttin</li><li>Glatt, nahtlos, vom Himmel gefallen</li></ul>
+                </div>
             </article>
-            <article class="card obj reveal d4">
-                <div class="top"><h3 class="h2">Einsteins Gehirn</h3></div>
-                <div class="bot"><p class="say">Organ, Maschine, Zauberer. E = mc².</p><p class="mono">S. 24 ff.</p></div>
+            <article class="obj reveal d4">
+                <div class="top">03</div>
+                <div class="bot">
+                    <span class="mono">S. 24 ff.</span>
+                    <h3 class="h3">Einsteins Gehirn</h3>
+                    <ul class="ticks"><li>Das Genie als Organ und Maschine</li><li>… und als Zauberer</li><li>E = mc² als Schlüssel zur Welt</li></ul>
+                </div>
             </article>
         </div>
     </div>
     <div class="pagenum">06</div>
-    <template class="notes-src" data-time="4:15–5:45">
-        <p>Drei Beispiele aus dem Buch.</p>
+    <template class="notes-src">
+        <p><span class="time">(4:15–5:45)</span> Drei Beispiele aus dem Buch.</p>
         <p>Erstens: Beefsteak und Pommes frites. Das Steak ist für Barthes in Frankreich mehr als Essen: blutig, kräftig, das Herz des Fleisches. Wer es isst, nimmt Stärke auf. Und die Pommes frites sind das Zeichen fürs Französischsein schlechthin. Barthes zitiert eine Pressemeldung: Nach dem Waffenstillstand in Indochina verlangte General de Castries als erste Mahlzeit – Pommes frites. Die Presse machte daraus eine patriotische Geste.</p>
         <p>Zweitens: der neue Citroën, die DS von 1955. Das Auto, schreibt Barthes, ist heute das, was die gotischen Kathedralen waren: das große Werk einer Epoche, das ein ganzes Volk als magischen Gegenstand verehrt. Schon der Name spielt mit: DS, gesprochen „Déesse“ – die Göttin. Glatt, ohne Nähte, wie vom Himmel gefallen.</p>
         <p>Drittens: Einsteins Gehirn. Das größte Genie wird als Organ ausgestellt, als perfekte Maschine – und zugleich als Zauberer, der das Geheimnis der Welt in eine Formel gepackt hat: E gleich m c Quadrat.</p>
@@ -436,56 +558,55 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
 <section class="slide s-nature" aria-label="Der Mythos verwandelt Geschichte in Natur">
     <div class="slide-inner">
         <div class="eyebrow reveal d1">Barthes · Der Mythos als gestohlene Sprache · S. 115 ff.</div>
-        <h2 class="h1 reveal d2">Der Mythos verwandelt Geschichte in Natur.</h2>
+        <h2 class="h1 reveal d2">Der Mythos verwandelt Geschichte in Natur</h2>
         <div class="verbs">
             <article class="card verb reveal d3">
-                <h3 class="h3">Er stiehlt.</h3>
-                <p class="body">Vorhandene Bedeutung wird zur Hülle.</p>
+                <h3 class="h3">Er stiehlt</h3>
+                <p class="body">Der Mythos nimmt eine vorhandene Bedeutung – Fleisch, Auto, Formel – und macht sie zur Hülle für seine Botschaft. Nicht einmal die Mathematik ist sicher.</p>
             </article>
-            <article class="card verb reveal d4">
-                <h3 class="h3">Er verbiegt.</h3>
-                <p class="body">Gemachtes wirkt wie „schon immer so“.</p>
+            <article class="card hot verb reveal d4">
+                <h3 class="h3">Er hat ein Alibi</h3>
+                <p class="body">„Der ist doch nur für Verletzungen da.“ Er zieht sich auf Ebene 1 zurück.</p>
             </article>
-            <article class="card verb alibi reveal d5">
-                <span class="tag">Aus dem Verein</span>
-                <h3 class="h3">Er hat ein Alibi.</h3>
-                <p class="body">„Der ist doch nur für Verletzungen da.“</p>
+            <article class="card verb reveal d5">
+                <h3 class="h3">Er verbiegt</h3>
+                <p class="body">Was historisch gemacht ist, wirkt wie „schon immer so“. Sinngemäß nach Barthes: Der Mythos lügt nicht – er verbiegt.</p>
             </article>
         </div>
-        <p class="foot reveal d6">Beispiel: <strong>„Deutsche bauen eben gute Maschinen.“</strong></p>
+        <p class="foot reveal d6">Beispiel: <strong>„Deutsche bauen eben gute Maschinen.“</strong> Entstanden durch Wirtschaft, Politik und Werbung – erlebt als Natur.</p>
     </div>
     <div class="pagenum">07</div>
-    <template class="notes-src" data-time="5:45–6:45">
-        <p>Was steckt dahinter? Barthes sagt: Der Mythos ist gestohlene Sprache. Er nimmt eine Bedeutung, die schon da ist – Fleisch, Auto, Formel – und benutzt sie als Hülle für seine eigene Botschaft. Nicht einmal die Mathematik ist davor sicher: Die Formel wird zum Zeichen für Wissenschaft und Genie an sich.</p>
-        <p><span class="new">(neu)</span> Und der Mythos hat immer ein Alibi. Sagt man im Verein: „Der Eiskoffer beweist gar nicht, dass wir hart trainieren“, heißt es sofort: „Der ist doch nur für Verletzungen da.“ Der Mythos zieht sich einfach auf die erste Ebene zurück.</p>
+    <template class="notes-src">
+        <p><span class="time">(5:45–6:45)</span> Was steckt dahinter? Barthes sagt: Der Mythos ist gestohlene Sprache. Er nimmt eine Bedeutung, die schon da ist – Fleisch, Auto, Formel – und benutzt sie als Hülle für seine eigene Botschaft. Nicht einmal die Mathematik ist davor sicher: Die Formel wird zum Zeichen für Wissenschaft und Genie an sich.</p>
+        <p>Und der Mythos hat immer ein Alibi. Sagt man im Verein: „Der Eiskoffer beweist gar nicht, dass wir hart trainieren“, heißt es sofort: „Der ist doch nur für Verletzungen da.“ Der Mythos zieht sich einfach auf die erste Ebene zurück.</p>
         <p>Und dabei passiert etwas Heikles: Der Mythos verwandelt Geschichte in Natur. Dass Franzosen Steak essen oder Deutsche gute Maschinen bauen, ist irgendwann entstanden – durch Wirtschaft, Politik, Werbung. Der Mythos lässt es aussehen, als wäre es schon immer so gewesen. Barthes sagt sinngemäß: Der Mythos lügt nicht. Er verbiegt.</p>
     </template>
 </section>
 
-<!-- ================= 08 GUILLOTINE ================= -->
+<!-- ================= 08 GUILLOTINE (Gegenüberstellung) ================= -->
 <section class="slide s-guillo" aria-label="Eine Maschine wird zum Symbol">
     <div class="slide-inner">
-        <div class="eyebrow reveal d1">Daniel Arasse · Die Guillotine</div>
+        <div class="eyebrow reveal d1">Daniel Arasse · Die Guillotine · Einführung</div>
+        <h2 class="h2 reveal d1">Eine Maschine wird zum Symbol</h2>
         <div class="split">
             <article class="half then reveal d2">
                 <span class="mono">1789 · gedacht</span>
-                <h2 class="h2">Gleich und schmerzlos.</h2>
-                <p class="body">Gleiche Strafe für alle – statt Schwert für den Adel, Galgen fürs Volk.</p>
-                <div class="scale" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+                <h3 class="h2">Gleich und schmerzlos</h3>
+                <ul class="ticks"><li>Guillotin: gleiche Strafe für alle</li><li>Bisher: Schwert für den Adel, Galgen und Rad fürs Volk</li><li>Die Aufklärung als Maschine</li></ul>
+                <!-- Bildplatzhalter: historischen Guillotine-Stich hier einfügen -->
+                <div class="slot" id="slot-guillotine"><span>Guillotine-Stich</span></div>
             </article>
             <article class="half now reveal d3">
                 <span class="mono">1793/94 · geworden</span>
-                <h2 class="h2">Symbol des Terrors.</h2>
-                <p class="body">„Maschine zum Regieren“ · „Nationales Rasiermesser“</p>
-                <div class="big-num">≈ 17.000</div>
-                <p class="body big-cap">Hingerichtete</p>
+                <h3 class="h2">Symbol des Terrors</h3>
+                <ul class="ticks"><li>„Maschine zum Regieren“ (Saint-Just)</li><li>„Nationales Rasiermesser“ (Volksmund)</li><li>Rund 17.000 Hingerichtete</li><li>Schauspiel: Stiche, Spielzeug, Puppentheater</li></ul>
             </article>
         </div>
-        <p class="moral reveal d5">Ingenieure konstruieren Funktionen. <span>Die Bedeutung gibt die Gesellschaft dazu.</span></p>
+        <p class="moral reveal d5">Ingenieure konstruieren Funktionen.<br><span>Die Bedeutung gibt die Gesellschaft dazu.</span></p>
     </div>
     <div class="pagenum">08</div>
-    <template class="notes-src" data-time="6:45–8:00">
-        <p>Was das für uns als Ingenieure heißt, zeigt Daniel Arasse am Beispiel der Guillotine.</p>
+    <template class="notes-src">
+        <p><span class="time">(6:45–8:00)</span> Was das für uns als Ingenieure heißt, zeigt Daniel Arasse am Beispiel der Guillotine.</p>
         <p>Die Guillotine war ein Reformprojekt der Aufklärung. 1789 forderte der Arzt Joseph-Ignace Guillotin: gleiche Strafe für alle. Bis dahin wurde der Adel mit dem Schwert enthauptet, das einfache Volk gehängt oder gerädert. Die Maschine sollte gleich, schnell und schmerzlos sein. Also gerecht.</p>
         <p>Doch in der Schreckensherrschaft 1793/94 wurde genau diese Maschine zum Symbol einer ganzen Epoche. Saint-Just nannte sie die „Maschine zum Regieren“, der Volksmund das „nationale Rasiermesser“. Rund 17.000 Menschen starben. Und die Hinrichtung wurde zum öffentlichen Schauspiel: Die Guillotine tauchte auf Stichen auf, als Spielzeug, sogar im Puppentheater. Arasse spricht vom Imaginären der Schreckensherrschaft.</p>
         <p>Arasse zeigt: Die Bedeutung steckt nicht in der Konstruktion. Wir Ingenieure konstruieren Funktionen. <span class="cue">[Pause.]</span> Die Bedeutung gibt die Gesellschaft dazu.</p>
@@ -495,27 +616,33 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
 <!-- ================= 09 WERBUNG ================= -->
 <section class="slide s-ads" aria-label="Werbung als Sonde in die Zeit">
     <div class="slide-inner">
-        <div class="eyebrow reveal d1">Gries / Ilgen / Schindelbeck · „Ins Gehirn der Masse kriechen!“</div>
+        <div class="eyebrow reveal d1">Gries / Ilgen / Schindelbeck · Einleitung, S. 1–28</div>
         <h2 class="h2 reveal d1">Werbung als Sonde in die Zeit</h2>
-        <p class="verbs-line reveal d2">aufspüren · verdichten · vorgeben</p>
-        <div class="slogans">
-            <article class="card slogan reveal d3">
-                <q>Mach mal Pause</q>
-                <div class="src"><span class="mono">Coca-Cola · 1950er</span><span class="body">Pause im Wirtschaftswunder</span></div>
-            </article>
-            <article class="card slogan reveal d4">
-                <q>Keine Experimente!</q>
-                <div class="src"><span class="mono">CDU · 1957</span><span class="body">Sicherheitsbedürfnis</span></div>
-            </article>
-            <article class="card slogan reveal d5">
-                <q>Der Geschmack der Heimat</q>
-                <div class="src"><span class="mono">Ostprodukte · nach der Wende</span><span class="body">Identität</span></div>
-            </article>
+        <div class="ads">
+            <div class="left card">
+                <p class="lead reveal d2">Werbung muss Gedanken, Gefühle und Wünsche aufspüren, verdichten – und vorgeben.</p>
+                <p class="body reveal d3">Im Wechselspiel von Werbern und Umworbenen entstehen kollektive Selbstverständnisse.</p>
+                <p class="small reveal d4">Der Titel spielt auf Hans Domizlaff an, den Begründer der Markentechnik, der sich auf Le Bons Massenpsychologie stützte.</p>
+            </div>
+            <div class="right">
+                <article class="card slogan reveal d3">
+                    <q>Mach mal Pause</q>
+                    <span class="mono">Coca-Cola, 1950er</span><span class="body">Pause im Wirtschaftswunder</span>
+                </article>
+                <article class="card hot slogan reveal d4">
+                    <q>Keine Experimente!</q>
+                    <span class="mono">CDU-Wahlslogan 1957</span><span class="body">Sicherheitsbedürfnis</span>
+                </article>
+                <article class="card slogan reveal d5">
+                    <q>Der Geschmack der Heimat</q>
+                    <span class="mono">Ostprodukte nach der Wende</span><span class="body">Identität</span>
+                </article>
+            </div>
         </div>
     </div>
     <div class="pagenum">09</div>
-    <template class="notes-src" data-time="8:00–9:00">
-        <p>Und die Kommunikation? Hier setzen Gries, Ilgen und Schindelbeck an. Ihr Buchtitel „Ins Gehirn der Masse kriechen!“ spielt auf Hans Domizlaff an, den Begründer der Markentechnik, der sich auf Le Bons Massenpsychologie stützte.</p>
+    <template class="notes-src">
+        <p><span class="time">(8:00–9:00)</span> Und die Kommunikation? Hier setzen Gries, Ilgen und Schindelbeck an. Ihr Buchtitel „Ins Gehirn der Masse kriechen!“ spielt auf Hans Domizlaff an, den Begründer der Markentechnik, der sich auf Le Bons Massenpsychologie stützte.</p>
         <p>Die Autoren drehen die Perspektive aber um. Werbung muss die Gedanken, Gefühle und Wünsche der Menschen aufspüren, verdichten – und vorgeben. Im Wechselspiel zwischen Werbern und Umworbenen entstehen kollektive Selbstverständnisse. Deshalb ist Werbung für Historiker eine Sonde in die Zeit.</p>
         <p>Zwei Slogans aus den Fünfzigern: „Mach mal Pause“ von Coca-Cola – für eine Gesellschaft, die im Wirtschaftswunder schuftet und sich die Pause erst erlauben muss. Und „Keine Experimente!“ – der CDU-Wahlslogan von 1957, der das Sicherheitsbedürfnis der Nachkriegszeit trifft.</p>
         <p>Oder nach der Wende: Ostprodukte verschwanden zuerst aus den Regalen – und kamen dann zurück, als „Geschmack der Heimat“. Ein Produkt wird zum Träger ostdeutscher Identität.</p>
@@ -526,26 +653,25 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
 <!-- ================= 10 MITNEHMEN ================= -->
 <section class="slide s-take" aria-label="Drei Punkte zum Mitnehmen">
     <div class="slide-inner">
-        <div class="eyebrow reveal d1">Drei Punkte zum Mitnehmen</div>
+        <div class="eyebrow reveal d1">Fazit</div>
+        <h2 class="h2 reveal d1">Drei Punkte zum Mitnehmen</h2>
         <div class="take">
             <ol class="points">
-                <li class="reveal d2"><b>01</b>Gemeinschaften erkennen sich in Dingen wieder.</li>
-                <li class="reveal d3"><b>02</b>Wer überzeugen will, knüpft an diese Symbole an.</li>
-                <li class="reveal d4"><b>03</b>Wer Mythen lesen kann, ist schwerer zu manipulieren.</li>
+                <li class="reveal d2"><b>1</b>Gemeinschaften erkennen sich in Dingen wieder.</li>
+                <li class="reveal d3"><b>2</b>Wer überzeugen will, knüpft an diese Symbole an.</li>
+                <li class="reveal d4"><b>3</b>Wer Mythen lesen kann, ist schwerer zu manipulieren.</li>
             </ol>
             <article class="card made reveal d5">
                 <span class="mono">Ein letztes Beispiel</span>
                 <h3 class="h3">„Made in Germany“</h3>
-                <div class="timeline">
-                    <div class="tl"><span class="mono">1887</span><span class="body">Britischer Warnhinweis vor deutscher Importware</span></div>
-                    <div class="tl"><span class="mono">heute</span><span class="body">Mythos deutscher Qualität</span></div>
-                </div>
+                <p class="body">1887 durch ein britisches Gesetz eingeführt – als Warnhinweis vor deutscher Importware.</p>
+                <p class="body"><strong>Heute: ein Mythos deutscher Qualität.</strong></p>
             </article>
         </div>
     </div>
     <div class="pagenum">10</div>
-    <template class="notes-src" data-time="9:00–9:40">
-        <p>Was nehmen wir mit? Drei Punkte.</p>
+    <template class="notes-src">
+        <p><span class="time">(9:00–9:40)</span> Was nehmen wir mit? Drei Punkte.</p>
         <p>Erstens: Gemeinschaften erkennen sich in Dingen wieder – im Steak, im Auto, in der Maschine.</p>
         <p>Zweitens: Wer überzeugen will, muss an diese Symbole anknüpfen. Das gilt für Werbung, für Politik – und für jede Präsentation.</p>
         <p>Drittens: Wer Mythen lesen kann, ist schwerer zu manipulieren.</p>
@@ -553,44 +679,60 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
     </template>
 </section>
 
-<!-- ================= 11 SCHLUSS ================= -->
+<!-- ================= 11 SCHLUSS (Statement) ================= -->
 <section class="slide s-end" aria-label="Schluss">
     <div class="slide-inner">
         <div class="eyebrow reveal d1">Zum Schluss</div>
         <h2 class="h1 reveal d2">Wer erzählt euch, was typisch deutsch ist – und was will er euch verkaufen?</h2>
         <p class="thanks reveal d4">Danke.</p>
     </div>
-    <div class="blocks2" aria-hidden="true">
-        <div class="grow" style="height:300px;background:var(--surface-warm)"></div>
-        <div class="grow" style="height:200px;background:var(--fg)"></div>
-        <div class="grow" style="height:380px;background:var(--accent)"></div>
-    </div>
-    <template class="notes-src" data-time="9:40–10:00">
-        <p>Also: Wenn euch das nächste Mal jemand erzählt, was typisch deutsch ist – fragt euch, wer euch das erzählt. Und was er euch verkaufen will.</p>
-        <p><span class="cue">[Pause, Blickkontakt.]</span> Danke.</p>
+    <div class="pagenum">11</div>
+    <template class="notes-src">
+        <p><span class="time">(9:40–10:00)</span> Also: Wenn euch das nächste Mal jemand erzählt, was typisch deutsch ist – fragt euch, wer euch das erzählt. Und was er euch verkaufen will.</p>
+        <p><span class="cue">[Pause.]</span> Danke.</p>
+        <p><span class="cue">[Rückbezug auf die Einstiegsfrage – Blickkontakt halten, nicht sofort wegklicken.]</span></p>
     </template>
 </section>
 
-<!-- ================= 12 DISKUSSION ================= -->
+<!-- ================= 12 DISKUSSION (optional) ================= -->
 <section class="slide s-disc" aria-label="Zur Diskussion">
     <div class="slide-inner">
         <div class="eyebrow reveal d1">Zur Diskussion</div>
+        <h2 class="h2 reveal d1">Zwei Fragen an euch</h2>
         <div class="questions">
             <article class="card question reveal d2">
                 <span class="num">1</span>
-                <h3 class="h2">Welche Produkte stehen heute für „uns“ – und wer macht sie dazu: Hersteller oder Nutzer?</h3>
+                <p>Welche Produkte stehen heute für „uns“ – und wer macht sie dazu: Hersteller oder Nutzer?</p>
             </article>
-            <article class="card question reveal d3">
+            <article class="card hot question reveal d3">
                 <span class="num">2</span>
-                <h3 class="h2">Ist Werbung Spiegel oder Motor unserer Mentalität?</h3>
+                <p>Ist Werbung Spiegel oder Motor unserer Mentalität?</p>
             </article>
         </div>
     </div>
     <div class="pagenum">12</div>
-    <template class="notes-src" data-time="optional, nach den 10 Minuten">
-        <p>Falls die Diskussion stockt:</p>
-        <p>Zu Frage 1 passen etwa Smartphone, E-Auto, Thermomix oder Deutschlandticket.</p>
-        <p>Zu Frage 2 sagen Gries und Kollegen: beides.</p>
+    <template class="notes-src">
+        <p><span class="time">(optional, nach den 10 Minuten)</span> Nur falls nach den 10 Minuten Zeit für Diskussion ist.</p>
+        <p>Mögliche Antworten zu Frage 1: Smartphone, E-Auto, Thermomix, Deutschlandticket.</p>
+        <p>Zu Frage 2: Gries/Ilgen/Schindelbeck sagen beides – Werbung spürt Mentalität auf und gibt sie zugleich vor.</p>
+    </template>
+</section>
+
+<!-- ================= 13 LITERATUR ================= -->
+<section class="slide s-lit" aria-label="Literatur">
+    <div class="slide-inner">
+        <div class="eyebrow reveal d1">Quellen</div>
+        <h2 class="h2 reveal d1">Literatur</h2>
+        <ul class="refs-list">
+            <li class="reveal d2"><b>Arasse</b><span>Arasse, Daniel: Die Guillotine. Die Macht der Maschine und das Schauspiel der Gerechtigkeit, Reinbek b. Hamburg (Rowohlt) 1988, Einführung.</span></li>
+            <li class="reveal d3"><b>Barthes</b><span>Barthes, Roland: Mythen des Alltags, Frankfurt a. M. (Suhrkamp) 1964: „Einsteins Gehirn“ (S. 24 ff.), „Beefsteak und Pommes frites“ (S. 36 ff.), „Der neue Citroën“ (S. 76 ff.), „Der Mythos als gestohlene Sprache“ (S. 115 ff.).</span></li>
+            <li class="reveal d4"><b>Gries / Ilgen / Schindelbeck</b><span>Gries, Rainer / Ilgen, Volker / Schindelbeck, Dirk: „Ins Gehirn der Masse kriechen!“ Werbung und Mentalitätsgeschichte, Darmstadt (Wissenschaftliche Buchgesellschaft) 1995, Einleitung, S. 1–28.</span></li>
+            <li class="reveal d5"><b>Le Goff</b><span>Le Goff, Jacques: Les mentalités. Une histoire ambiguë, in: Le Goff, Jacques / Nora, Pierre (Hg.): Faire de l’histoire, Bd. 3, Paris (Gallimard) 1974.</span></li>
+        </ul>
+    </div>
+    <div class="pagenum">13</div>
+    <template class="notes-src">
+        <p>Literaturliste laut Semesterplan, Sitzung 8; Le Goff als Ergänzung für die Definition von Mentalität.</p>
     </template>
 </section>
 
@@ -603,7 +745,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
 
 <aside class="notes" id="notes" hidden aria-live="polite">
     <div class="notes-head">
-        <span><strong id="notesTitle"></strong> · <span id="notesTime"></span></span>
+        <strong id="notesTitle"></strong>
         <span class="nav-btns"><button type="button" id="prevBtn">← zurück</button><button type="button" id="nextBtn">weiter →</button></span>
     </div>
     <div class="notes-body" id="notesBody"></div>
@@ -612,7 +754,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
 <script>
 /* ===========================================
    SLIDE PRESENTATION CONTROLLER
-   Bühnen-Skalierung, Tastatur, Wischen/Tippen, Mausrad, Notizen
+   Bühnen-Skalierung, Tastatur, Wischen/Tippen, Mausrad, Sprechernotizen (N)
    =========================================== */
 class SlidePresentation {
     constructor() {
@@ -631,6 +773,7 @@ class SlidePresentation {
         const fromHash = parseInt(location.hash.slice(1), 10);
         this.showSlide(Number.isFinite(fromHash) ? fromHash - 1 : 0);
     }
+    /* Ganze 1920×1080-Bühne gleichmäßig skalieren, nie umbrechen */
     setupStageScale() {
         const scale = () => {
             const w = this.stage.parentElement.clientWidth, h = this.stage.parentElement.clientHeight;
@@ -661,8 +804,7 @@ class SlidePresentation {
             else if (Math.abs(dx) < 10 && Math.abs(dy) < 10) { e.preventDefault(); sx > innerWidth / 3 ? this.next() : this.prev(); }
         });
         document.addEventListener('click', (e) => {
-            if (e.pointerType === 'touch' || this.isUi(e.target) || document.body.classList.contains('editing')) return;
-            if (e.detail === 0) return;
+            if (this.isUi(e.target) || document.body.classList.contains('editing') || e.detail === 0) return;
             e.clientX > innerWidth / 3 ? this.next() : this.prev();
         });
     }
@@ -688,9 +830,7 @@ class SlidePresentation {
         const s = this.slides[this.current];
         const src = s.querySelector('template.notes-src');
         document.getElementById('notesTitle').textContent = `Folie ${this.current + 1} von ${this.slides.length} · ${s.getAttribute('aria-label')}`;
-        document.getElementById('notesTime').textContent = src ? src.dataset.time : '';
-        const body = document.getElementById('notesBody');
-        body.replaceChildren(src ? src.content.cloneNode(true) : document.createTextNode(''));
+        document.getElementById('notesBody').replaceChildren(src ? src.content.cloneNode(true) : document.createTextNode(''));
         this.notes.scrollTop = 0;
     }
     next() { this.showSlide(this.current + 1); }
@@ -711,12 +851,13 @@ try { if (localStorage.getItem('rhetorik-notes') === '1') deck.toggleNotes(); } 
 
 /* ===========================================
    INLINE EDITOR — E-Taste oder Ecke oben links
-   Änderungen bleiben nur in diesem Browser gespeichert.
+   Änderungen bleiben nur in diesem Browser gespeichert (localStorage).
    =========================================== */
+const btn = document.getElementById('editToggle');
 const editor = {
     isActive: false,
-    key: 'rhetorik-deck-edits',
-    targets() { return document.querySelectorAll('.slide h1, .slide h2, .slide h3, .slide p, .slide li, .slide q, .slide .eyebrow, .slide .mono, .slide .v, .slide .step, .slide .big-num'); },
+    key: 'rhetorik-deck-edits-v2',
+    targets() { return document.querySelectorAll('.slide h1, .slide h2, .slide h3, .slide p, .slide li, .slide q, .slide .eyebrow, .slide .mono, .slide .v, .slide .lvl'); },
     toggle() {
         this.isActive = !this.isActive;
         document.body.classList.toggle('editing', this.isActive);
@@ -733,16 +874,14 @@ const editor = {
         } catch (e) {}
     }
 };
-const btn = document.getElementById('editToggle');
 const hotzone = document.querySelector('.edit-hotzone');
 let hideTimeout = null;
 editor.restore();
 btn.addEventListener('click', () => editor.toggle());
-hotzone.addEventListener('click', () => { btn.classList.add('show'); });
-const hideSoon = () => { hideTimeout = setTimeout(() => { if (!editor.isActive) btn.classList.remove('show'); }, 2500); };
+hotzone.addEventListener('click', () => editor.toggle());
+const hideSoon = () => { hideTimeout = setTimeout(() => { if (!editor.isActive) btn.classList.remove('show'); }, 400); };
 hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); btn.classList.add('show'); });
 hotzone.addEventListener('mouseleave', hideSoon);
-hotzone.addEventListener('touchend', hideSoon);
 btn.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
 btn.addEventListener('mouseleave', hideSoon);
 document.addEventListener('input', () => editor.save());
@@ -750,4 +889,5 @@ document.addEventListener('keydown', (e) => {
     if ((e.key === 'e' || e.key === 'E') && e.target.getAttribute('contenteditable') !== 'true') { e.preventDefault(); editor.toggle(); }
 });
 </script>
-</body></html>
+</body>
+</html>
