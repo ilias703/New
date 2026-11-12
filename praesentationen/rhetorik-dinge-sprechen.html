@@ -365,6 +365,31 @@ body { color: var(--ink); font-family: var(--font-body); }
 .refs-list li { padding: 20px 0 22px 0; border-top: 2px solid var(--ink); font-size: 28px; line-height: 1.38; display: grid; grid-template-columns: 300px 1fr; gap: 40px; }
 .refs-list li b { font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 40px; line-height: 1; }
 
+
+/* ===========================================
+   SCHLANKE FOLIEN — größere Schrift, weniger Text
+   =========================================== */
+.say { font-size: 44px; line-height: 1.2; font-weight: 600; }
+.s-thesis .refs { margin-top: 60px; font-size: 28px; }
+.term { align-items: baseline; padding: 36px 0 40px; }
+.term .say { font-size: 46px; }
+.model-claim { margin-top: 48px; padding-top: 22px; border-top: 3px solid var(--ink); font-size: 48px; font-weight: 800; }
+.obj .h3 { min-height: 0; font-size: 72px; }
+.obj .top { font-size: 34px; }
+.verb .say { font-size: 40px; }
+.s-nature .foot { font-size: 40px; }
+.half .say { font-size: 40px; }
+.half.then .slot { height: 200px; }
+.big-num { margin-top: auto; font-family: var(--font-display); font-stretch: 62%; font-weight: 800; font-size: 200px; line-height: 0.85; color: var(--red); }
+.ads .left .lead { font-family: var(--font-display); font-stretch: 62%; font-weight: 800; text-transform: uppercase; font-size: 120px; line-height: 0.95; }
+.slogan q { font-size: 76px; }
+.slogan .mono { font-size: 22px; }
+.made { justify-content: center; gap: 30px; }
+.made .h3 { font-size: 96px; }
+.made .body { font-size: 48px; font-weight: 700; line-height: 1.1; }
+.made .body .mono { font-size: 24px; color: var(--on-red); }
+.points li { font-size: 50px; }
+
 /* ===========================================
    CHROME AUSSERHALB DER BÜHNE — Fortschritt, Notizen, Bearbeiten
    =========================================== */
@@ -434,11 +459,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
     <div class="slide-inner">
         <div class="eyebrow reveal d1">These</div>
         <h2 class="h-hero reveal d2">Dinge sprechen.</h2>
-        <div class="claims">
-            <p class="reveal d3">An Auto, Straße und Maschine macht eine Gemeinschaft fest, wer sie ist.</p>
-            <p class="reveal d4">Kommunikation wirkt, wenn sie an diese Symbole anknüpft – und sie wird zum Mythos, wenn sie Gemachtes als natürlich ausgibt.</p>
-        </div>
-        <p class="refs reveal d5">Barthes · Arasse · Gries / Ilgen / Schindelbeck</p>
+        <p class="refs reveal d4">Barthes · Arasse · Gries / Ilgen / Schindelbeck</p>
     </div>
     <div class="pagenum">03</div>
     <template class="notes-src">
@@ -453,18 +474,9 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
         <div class="eyebrow reveal d1">Begriffe</div>
         <h2 class="h2 reveal d1">Drei Begriffe vorweg</h2>
         <div class="terms">
-            <article class="card term reveal d2">
-                <h3 class="h3">Mentalität</h3>
-                <p class="say">Was alle für selbstverständlich halten, ohne darüber nachzudenken. <span class="q">Le Goff: das, was Caesar mit dem letzten Soldaten seiner Legionen teilt.</span></p>
-            </article>
-            <article class="card hot term reveal d3">
-                <h3 class="h3">Kollektives Selbstverständnis</h3>
-                <p class="say">Das Bild, das eine Gruppe von sich selbst hat: <span class="q">„Wir sind fleißig. Wir sind Tüftler. Wir sind pünktlich.“</span></p>
-            </article>
-            <article class="card term reveal d4">
-                <h3 class="h3">Kollektive Symbolisierung</h3>
-                <p class="say">Das Selbstbild braucht etwas zum Anfassen: ein Ding, ein Bild, ein Wort, das jeder sofort versteht.</p>
-            </article>
+            <article class="card term reveal d2"><h3 class="h3">Mentalität</h3><p class="say">Was alle für selbstverständlich halten.</p></article>
+            <article class="card hot term reveal d3"><h3 class="h3">Kollektives Selbstverständnis</h3><p class="say">„Wir sind fleißig. Wir sind pünktlich.“</p></article>
+            <article class="card term reveal d4"><h3 class="h3">Kollektive Symbolisierung</h3><p class="say">Ein Ding, das jeder sofort versteht.</p></article>
         </div>
     </div>
     <div class="pagenum">04</div>
@@ -497,10 +509,7 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
             <div class="cell reveal d5" style="grid-column:4; grid-row:3"><span class="mono">II · Begriff</span><span class="v">Aufstieg, Verlässlichkeit</span></div>
             <div class="cell myth reveal d6" style="grid-column:5; grid-row:3"><span class="mono">III · Bedeutung</span><span class="v">Mythos „Käfer = Wirtschafts&shy;wunder“</span></div>
         </div>
-        <div class="model-foot">
-            <p class="claim reveal d6"><strong>Den Mythos bemerkt man nicht</strong> – er wirkt natürlich.</p>
-            <p class="box reveal d6"><span class="mono">Beispiel aus dem Verein</span>Eiskoffer = „Wir trainieren härter als alle anderen.“</p>
-        </div>
+        <p class="model-claim reveal d6">Den Mythos bemerkt man nicht.</p>
     </div>
     <div class="pagenum">05</div>
     <template class="notes-src">
@@ -515,33 +524,21 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
 <!-- ================= 06 DREI MYTHEN DER TECHNIK ================= -->
 <section class="slide s-trio" aria-label="Drei Mythen der Technik">
     <div class="slide-inner">
-        <div class="eyebrow reveal d1">Von Barthes bis heute · Mythen der Technik</div>
+        <div class="eyebrow reveal d1">Mythen der Technik</div>
         <h2 class="h2 reveal d1">Auto, Autobahn, Ingenieurskunst</h2>
         <div class="trio">
             <article class="obj reveal d2">
                 <!-- Bildplatzhalter: Foto Citroën DS hier einfügen, z. B. style="background-image:url('ds.jpg')" -->
                 <div class="top slot" id="slot-ds"><span>Foto Citroën DS</span></div>
-                <div class="bot">
-                    <span class="mono">Barthes · S. 76 ff.</span>
-                    <h3 class="h3">Der neue Citroën</h3>
-                    <ul class="ticks"><li>Das Auto als gotische Kathedrale</li><li>DS = „Déesse“, die Göttin</li><li>Glatt, nahtlos, vom Himmel gefallen</li></ul>
-                </div>
+                <div class="bot"><span class="mono">Barthes · 1955</span><h3 class="h3">Citroën DS</h3><p class="say">„Déesse“ – die Göttin</p></div>
             </article>
             <article class="obj reveal d3">
                 <div class="top">„Freie Fahrt für freie Bürger“</div>
-                <div class="bot">
-                    <span class="mono">ADAC · 1974</span>
-                    <h3 class="h3">Die Autobahn</h3>
-                    <ul class="ticks"><li>Ebene 1: Straße ohne Kreuzungen</li><li>Ebene 2: Freiheit</li><li>Kein Tempolimit = „typisch deutsch“</li></ul>
-                </div>
+                <div class="bot"><span class="mono">ADAC · 1974</span><h3 class="h3">Autobahn</h3><p class="say">Straße = Freiheit</p></div>
             </article>
             <article class="obj reveal d4">
                 <div class="top">„Vorsprung durch Technik“</div>
-                <div class="bot">
-                    <span class="mono">Audi · seit 1971</span>
-                    <h3 class="h3">Deutsche Ingenieurskunst</h3>
-                    <ul class="ticks"><li>Verkauft ein Selbstbild, nicht nur Autos</li><li>Deutsche Ingenieure: einen Schritt voraus</li><li>Wirkt sogar im Ausland – auf Deutsch</li></ul>
-                </div>
+                <div class="bot"><span class="mono">Audi · seit 1971</span><h3 class="h3">Ingenieurskunst</h3><p class="say">Ein Selbstbild als Slogan</p></div>
             </article>
         </div>
     </div>
@@ -557,23 +554,14 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
 <!-- ================= 07 GESCHICHTE → NATUR ================= -->
 <section class="slide s-nature" aria-label="Der Mythos verwandelt Geschichte in Natur">
     <div class="slide-inner">
-        <div class="eyebrow reveal d1">Barthes · Der Mythos als gestohlene Sprache · S. 115 ff.</div>
+        <div class="eyebrow reveal d1">Barthes · Der Mythos als gestohlene Sprache</div>
         <h2 class="h1 reveal d2">Der Mythos verwandelt Geschichte in Natur</h2>
         <div class="verbs">
-            <article class="card verb reveal d3">
-                <h3 class="h3">Er stiehlt</h3>
-                <p class="body">Der Mythos nimmt eine vorhandene Bedeutung – Auto, Straße, Slogan – und macht sie zur Hülle für seine Botschaft. Nicht einmal die Technik ist neutral.</p>
-            </article>
-            <article class="card hot verb reveal d4">
-                <h3 class="h3">Er hat ein Alibi</h3>
-                <p class="body">„Der ist doch nur für Verletzungen da.“ Er zieht sich auf Ebene 1 zurück.</p>
-            </article>
-            <article class="card verb reveal d5">
-                <h3 class="h3">Er verbiegt</h3>
-                <p class="body">Was historisch gemacht ist, wirkt wie „schon immer so“. Sinngemäß nach Barthes: Der Mythos lügt nicht – er verbiegt.</p>
-            </article>
+            <article class="card verb reveal d3"><h3 class="h3">Er stiehlt</h3><p class="say">Bedeutung wird zur Hülle.</p></article>
+            <article class="card hot verb reveal d4"><h3 class="h3">Er hat ein Alibi</h3><p class="say">„Der ist doch nur für Verletzungen da.“</p></article>
+            <article class="card verb reveal d5"><h3 class="h3">Er verbiegt</h3><p class="say">Gemachtes wirkt wie „schon immer so“.</p></article>
         </div>
-        <p class="foot reveal d6">Beispiel: <strong>„Deutsche bauen eben gute Maschinen.“</strong> Entstanden durch Wirtschaft, Politik und Werbung – erlebt als Natur.</p>
+        <p class="foot reveal d6"><strong>„Deutsche bauen eben gute Maschinen.“</strong></p>
     </div>
     <div class="pagenum">07</div>
     <template class="notes-src">
@@ -586,20 +574,22 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
 <!-- ================= 08 GUILLOTINE (Gegenüberstellung) ================= -->
 <section class="slide s-guillo" aria-label="Eine Maschine wird zum Symbol">
     <div class="slide-inner">
-        <div class="eyebrow reveal d1">Daniel Arasse · Die Guillotine · Einführung</div>
+        <div class="eyebrow reveal d1">Daniel Arasse · Die Guillotine</div>
         <h2 class="h2 reveal d1">Eine Maschine wird zum Symbol</h2>
         <div class="split">
             <article class="half then reveal d2">
                 <span class="mono">1789 · gedacht</span>
                 <h3 class="h2">Gleich und schmerzlos</h3>
-                <ul class="ticks"><li>Guillotin: gleiche Strafe für alle</li><li>Bisher: Schwert für den Adel, Galgen und Rad fürs Volk</li><li>Die Aufklärung als Maschine</li></ul>
+                <p class="say">Gleiche Strafe für alle</p>
                 <!-- Bildplatzhalter: historischen Guillotine-Stich hier einfügen -->
                 <div class="slot" id="slot-guillotine"><span>Guillotine-Stich</span></div>
             </article>
             <article class="half now reveal d3">
                 <span class="mono">1793/94 · geworden</span>
                 <h3 class="h2">Symbol des Terrors</h3>
-                <ul class="ticks"><li>„Maschine zum Regieren“ (Saint-Just)</li><li>„Nationales Rasiermesser“ (Volksmund)</li><li>Rund 17.000 Hingerichtete</li><li>Schauspiel: Stiche, Spielzeug, Puppentheater</li></ul>
+                <p class="say">„Nationales Rasiermesser“</p>
+                <p class="big-num">≈ 17.000</p>
+                <span class="mono">Hingerichtete</span>
             </article>
         </div>
         <p class="moral reveal d5">Ingenieure konstruieren Funktionen.<br><span>Die Bedeutung gibt die Gesellschaft dazu.</span></p>
@@ -616,27 +606,16 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
 <!-- ================= 09 WERBUNG ================= -->
 <section class="slide s-ads" aria-label="Werbung als Sonde in die Zeit">
     <div class="slide-inner">
-        <div class="eyebrow reveal d1">Gries / Ilgen / Schindelbeck · Einleitung, S. 1–28</div>
+        <div class="eyebrow reveal d1">Gries / Ilgen / Schindelbeck</div>
         <h2 class="h2 reveal d1">Werbung als Sonde in die Zeit</h2>
         <div class="ads">
             <div class="left card">
-                <p class="lead reveal d2">Werbung muss Gedanken, Gefühle und Wünsche aufspüren, verdichten – und vorgeben.</p>
-                <p class="body reveal d3">Im Wechselspiel von Werbern und Umworbenen entstehen kollektive Selbstverständnisse.</p>
-                <p class="small reveal d4">Der Titel spielt auf Hans Domizlaff an, den Begründer der Markentechnik, der sich auf Le Bons Massenpsychologie stützte.</p>
+                <p class="lead reveal d2">aufspüren<br>verdichten<br>vorgeben</p>
             </div>
             <div class="right">
-                <article class="card slogan reveal d3">
-                    <q>Mach mal Pause</q>
-                    <span class="mono">Coca-Cola, 1950er</span><span class="body">Pause im Wirtschaftswunder</span>
-                </article>
-                <article class="card hot slogan reveal d4">
-                    <q>Keine Experimente!</q>
-                    <span class="mono">CDU-Wahlslogan 1957</span><span class="body">Sicherheitsbedürfnis</span>
-                </article>
-                <article class="card slogan reveal d5">
-                    <q>Der Geschmack der Heimat</q>
-                    <span class="mono">Ostprodukte nach der Wende</span><span class="body">Identität</span>
-                </article>
+                <article class="card slogan reveal d3"><q>Mach mal Pause</q><span class="mono">Coca-Cola · 1950er</span></article>
+                <article class="card hot slogan reveal d4"><q>Keine Experimente!</q><span class="mono">CDU · 1957</span></article>
+                <article class="card slogan reveal d5"><q>Der Geschmack der Heimat</q><span class="mono">Ostprodukte · nach der Wende</span></article>
             </div>
         </div>
     </div>
@@ -658,14 +637,13 @@ body.editing [contenteditable="true"] { outline: 2px dashed var(--red); outline-
         <div class="take">
             <ol class="points">
                 <li class="reveal d2"><b>1</b>Gemeinschaften erkennen sich in Dingen wieder.</li>
-                <li class="reveal d3"><b>2</b>Wer überzeugen will, knüpft an diese Symbole an.</li>
+                <li class="reveal d3"><b>2</b>Wer überzeugen will, knüpft an Symbole an.</li>
                 <li class="reveal d4"><b>3</b>Wer Mythen lesen kann, ist schwerer zu manipulieren.</li>
             </ol>
             <article class="card made reveal d5">
-                <span class="mono">Ein letztes Beispiel</span>
                 <h3 class="h3">„Made in Germany“</h3>
-                <p class="body">1887 durch ein britisches Gesetz eingeführt – als Warnhinweis vor deutscher Importware.</p>
-                <p class="body"><strong>Heute: ein Mythos deutscher Qualität.</strong></p>
+                <p class="body"><span class="mono">1887</span><br>Warnhinweis</p>
+                <p class="body"><span class="mono">heute</span><br>Qualitätsmythos</p>
             </article>
         </div>
     </div>
