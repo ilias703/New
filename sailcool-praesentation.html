@@ -588,7 +588,6 @@
                     <div class="sub rv d4">Modulare, wind- und solarversorgte Kühlung für das ländliche Indien</div>
                 </div>
                 <!-- 3D-Windrad (three.js, transparenter Hintergrund) -->
-                <div class="turbine rv d3"><canvas id="turbine3d" aria-label="3D-Modell eines Windrads"></canvas></div>
                 <div class="index rv d5"><span>Sven Feuerbacher</span><span>Patricia Walter</span><span>Felix Fleig</span><span>David Ammann</span><span>Ilias Ainous</span></div>
             </section>
 
@@ -1358,11 +1357,6 @@
                 } else { v.camera.position.set(...cam); v.camera.lookAt(...look); }
                 views.push({ v, upd, slide: canvas.closest('.slide') });
             }
-            const title = document.getElementById('turbine3d');
-            if (title) add(title, 700, 930, 30, [1.2, 0.2, 13.2], [0, -0.25, 0], (scene) => {
-                const { g, rotor } = buildTurbine(); g.position.y = 1.05; scene.add(g);
-                return (s) => { rotor.rotation.z = -s * 1.1; g.rotation.y = -0.35 + Math.sin(s * 0.35) * 0.22; };
-            });
             const endCanvas = document.getElementById('turbineEnd');
             if (endCanvas) add(endCanvas, 560, 980, 30, [-1.4, 0.4, 12.6], [0, 0, 0], (scene) => {
                 const { g, rotor } = buildTurbine(); g.rotation.y = 0.55 - Math.PI / 2; scene.add(g);   // 90° im Uhrzeigersinn (von oben): Rotor zeigt nach links
@@ -1418,12 +1412,15 @@
                 const pos = geo.attributes.position, col = [];
                 const cLow = new T.Color(0x3c4d1b).convertSRGBToLinear(), cMid = new T.Color(0x556b2f).convertSRGBToLinear(), cTop = new T.Color(0x6f8a3e).convertSRGBToLinear();
                 const off = kind === 'end' ? 0.4 : 0;
+                const hillY = (x, z) => {                                         // Geländehöhe an (x, z)
+                    const back = (15 - z) / 30;                                   // 0 vorne … 1 hinten
+                    const y = 0.9 * Math.sin(x * 0.16 + off) + 0.55 * Math.sin(x * 0.37 + z * 0.21 + 1.3 + off)
+                            + 0.3 * Math.sin(x * 0.9 + z * 0.5) + 0.12 * Math.sin(x * 2.1 - z * 1.3);
+                    return y * (0.35 + back * 0.55) + back * 1.2 - 1.4;          // hinten etwas höhere Hügel
+                };
                 for (let i = 0; i < pos.count; i++) {
                     const x = pos.getX(i), z = pos.getZ(i);
-                    const back = (15 - z) / 30;                                   // 0 vorne … 1 hinten
-                    let y = 0.9 * Math.sin(x * 0.16 + off) + 0.55 * Math.sin(x * 0.37 + z * 0.21 + 1.3 + off)
-                          + 0.3 * Math.sin(x * 0.9 + z * 0.5) + 0.12 * Math.sin(x * 2.1 - z * 1.3);
-                    y = y * (0.35 + back * 0.55) + back * 1.2 - 1.4;              // hinten etwas höhere Hügel
+                    const y = hillY(x, z);
                     pos.setY(i, y);
                     const tt = Math.max(0, Math.min(1, (y + 1.9) / 2.6));
                     const c = cLow.clone().lerp(cMid, Math.min(1, tt * 1.6)).lerp(cTop, Math.max(0, tt - 0.45) * 1.6);
@@ -1434,15 +1431,40 @@
                 const ground = new T.Mesh(geo, new T.MeshStandardMaterial({ vertexColors: true, roughness: 0.92, metalness: 0 }));
                 v.scene.add(ground);
                 const sunL = new T.DirectionalLight(0xfff1d6, 0.35); sunL.position.set(-6, 5, 3); v.scene.add(sunL);
-                v.camera.position.set(0, 1.6, 15); v.camera.lookAt(0, 4.55, 0);
+                // Gerade Kamera + Bildverschiebung (Shift statt Neigen): senkrechte Linien bleiben senkrecht
+                v.camera.position.set(0, 1.6, 15); v.camera.lookAt(0, 1.6, 0);
+                const shift = Math.tan(Math.atan2(4.55 - 1.6, 15)) / Math.tan(T.MathUtils.degToRad(16)) * H / 2;
+                v.camera.setViewOffset(W, H, 0, -shift, W, H);
+                v.camera.updateMatrixWorld(); v.camera.updateProjectionMatrix();
+
+                /* Titel: Windrad steht direkt im Gelände (Fuß sinkt leicht in den Hügel ein) */
+                let titleRotor = null, titleMill = null;
+                if (kind === 'title') {
+                    const { g, rotor } = buildTurbine(); titleRotor = rotor; titleMill = g; v.scene.add(g);
+                    const prj = (wx, wy, wz) => new T.Vector3(wx, wy, wz).project(v.camera);
+                    const xAt = (z) => {                                          // x so wählen, dass das Windrad bei 75 % der Breite steht
+                        let lo = -30, hi = 30;
+                        for (let k = 0; k < 40; k++) { const m = (lo + hi) / 2; if ((prj(m, 0, z).x + 1) / 2 < 0.755) lo = m; else hi = m; }
+                        return (lo + hi) / 2;
+                    };
+                    let ZT = 0, X = 0, best = -Infinity;                          // Hügelkuppe in dieser Bildspalte suchen
+                    for (let z = 12; z >= -10; z -= 0.25) { const x = xAt(z), sy = prj(x, hillY(x, z), z).y; if (sy > best) { best = sy; ZT = z; X = x; } }
+                    let yb = Infinity;                                            // tiefste Stelle unter dem Mastfuß
+                    for (let dx = -0.15; dx <= 0.15; dx += 0.05) for (let dz = -0.15; dz <= 0.15; dz += 0.05) yb = Math.min(yb, hillY(X + dx, ZT + dz));
+                    let a = 0.1, b2 = 4;                                          // Größe: Blattspitze bei ~14 % von oben
+                    for (let k = 0; k < 40; k++) { const m = (a + b2) / 2; const top = prj(X, yb + 6.37 * m, ZT).y; if ((1 - top) / 2 > 0.14) a = m; else b2 = m; }
+                    const SC = (a + b2) / 2;
+                    g.scale.setScalar(SC); g.position.set(X, yb - 0.3 * SC + 4.42 * SC, ZT + 0.35); g.rotation.y = -0.35;
+                }
                 // Wolken oben – auf der Titelfolie rechts (nicht hinter dem Schriftzug)
                 const spots = kind === 'title'
-                    ? [[1.8, 9.35, -2, 0.7, 11], [9.0, 9.55, -3, 0.6, 23], [5.6, 10.2, -6, 0.5, 37]]
-                    : [[-0.4, 9.45, -2, 0.75, 5], [4.6, 9.0, -3, 0.6, 17], [9.0, 9.8, -5, 0.55, 29]];
+                    ? [[1.8, 9.0, -2, 0.7, 11], [9.0, 9.2, -3, 0.6, 23], [5.6, 9.85, -6, 0.5, 37]]
+                    : [[-0.4, 9.1, -2, 0.75, 5], [4.6, 8.7, -3, 0.6, 17], [9.0, 9.45, -5, 0.55, 29]];
                 const clouds = spots.map(([x, y, z, sc, seed]) => { const c = buildCloud(seed, sc); c.position.set(x, y, z); v.scene.add(c); return { c, x, sp: 0.35 + seed % 5 * 0.06 }; });
                 let was = false, shown = 0;
                 views.push({ v, slide, upd: (s) => {
                     const vis = slide.classList.contains('visible'); if (vis && !was) shown = s; was = vis;
+                    if (titleRotor) { titleRotor.rotation.z = -s * 1.1; titleMill.rotation.y = -0.35 + Math.sin(s * 0.35) * 0.22; }
                     const gust = kind === 'end' ? 1 + 3 * Math.exp(-(s - shown) / 1.4) : 1;   // Schluss: Windstoß schiebt die Wolken kurz an
                     clouds.forEach((o, i) => {
                         o.x += 0.004 * o.sp * gust; if (o.x > 13) o.x = -13;
