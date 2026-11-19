@@ -252,6 +252,10 @@
         .s08 .wl > span { font-family: var(--f-display); font-weight: 600; font-size: 20px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute); }
         .s08 .wl.hl b { color: var(--coral); }
         .s08 .wl:not(.hl) { transform: translate(0, -50%); text-align: left; }
+        .s08 .inmark { position: absolute; width: 56px; height: 56px; margin: -28px 0 0 -28px; border: 2.5px solid var(--coral); border-radius: 50%; display: none; opacity: 0; transition: opacity 0.4s; pointer-events: none; }
+        .s08 .inmark::after { content: ""; position: absolute; inset: -12px; border: 1.5px dashed var(--coral); border-radius: 50%; animation: markPulse 1.6s ease-in-out infinite; }
+        @keyframes markPulse { 0%, 100% { transform: scale(0.9); opacity: 0.9; } 50% { transform: scale(1.25); opacity: 0.2; } }
+        body.has3d .s08 .inmark { display: block; }
         .s08 .zoomtag { position: absolute; right: 26px; top: 22px; display: none; font-family: var(--f-mono); font-size: 18px; color: var(--ink-mute); border: 1px solid var(--line); border-radius: 999px; padding: 6px 16px; opacity: 0; transition: opacity 0.3s; }
         body.has3d .s08 .zoomtag { display: block; }
         .s08 .wl.hl::after { content: ""; display: block; width: 1.5px; height: 46px; margin: 8px auto 0; background: var(--coral); }
@@ -682,6 +686,7 @@
                         <div class="wl" data-k="us"><b><span class="count" data-to="156">0</span> MW</b><span>USA</span></div>
                         <div class="wl hl" data-k="in"><b>3–5 MW</b><span>Indien</span></div>
                         <div class="zoomtag">Lupe ×100</div>
+                        <div class="inmark"></div>
                         <div class="bars-fb">
                         <div class="bar"><div class="lb">China</div><div class="tr"><div class="fl grow g1" style="width:700px"></div><div class="v pop p1"><span class="count" data-to="704">0</span> MW</div></div></div>
                         <div class="bar"><div class="lb">USA</div><div class="tr"><div class="fl grow g2" style="width:155px"></div><div class="v pop p2"><span class="count" data-to="156">0</span> MW</div></div></div>
@@ -1400,8 +1405,13 @@
                         v.camera.position.copy(look).addScaledVector(dir, d); v.camera.lookAt(look);
                         v.scene.updateMatrixWorld(true);
                         card.querySelector('.zoomtag').style.opacity = (z > 0.85 && t > 0.4) ? 1 : 0;
+                        {   // Markierung um das winzige indische Windrad (bleibt nach dem Herauszoomen sichtbar)
+                            const m = new T.Vector3(6.0, 0.018, 0).project(v.camera), mk = card.querySelector('.inmark');
+                            mk.style.left = (m.x + 1) / 2 * W + 'px'; mk.style.top = (1 - m.y) / 2 * H + 'px';
+                            mk.style.opacity = z < 0.6 ? 1 : 0;
+                        }
                         data.forEach((o) => {                                        // Beschriftungen mitführen
-                            const top = (o.k === 'in' ? new T.Vector3(o.x, 0.044 + 0.75 * (1 - z), 0) : new T.Vector3(o.x + 1.9 * o.sc + 0.35, 4.42 * o.sc * 0.82, 0)).project(v.camera);
+                            const top = (o.k === 'in' ? new T.Vector3(o.x, 0.044 + 0.95 * (1 - z), 0) : new T.Vector3(o.x + 1.9 * o.sc + 0.35, 4.42 * o.sc * 0.82, 0)).project(v.camera);
                             const x = (top.x + 1) / 2 * W, y = (1 - top.y) / 2 * H;
                             const inView = x > 40 && x < W - 40 && y > 60 && y < H;
                             o.el.style.left = x + 'px'; o.el.style.top = y + 'px';
