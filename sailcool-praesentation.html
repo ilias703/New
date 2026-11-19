@@ -582,6 +582,23 @@
         .s13w.visible .sw-streaks path:nth-child(3) { animation-delay: 1.8s; }
         @keyframes swGust { 0% { stroke-dashoffset: 140; opacity: 0; } 15% { opacity: 0.8; } 85% { opacity: 0.5; } 100% { stroke-dashoffset: -760; opacity: 0; } }
 
+
+        /* ===========================================
+           FOLIE 14 — SWOT: klare 2×2-Matrix mit beschrifteten Achsen
+           =========================================== */
+        .s13c .sx-grid { position: absolute !important; left: 400px; right: var(--pad); top: 395px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 26px; height: 590px; }
+        .s13c .sx { position: relative; padding: 40px 48px; overflow: hidden; }
+        .s13c .sx-l { position: absolute; right: 34px; bottom: -40px; font-family: var(--f-serif); font-style: italic; font-weight: 500; font-size: 150px; line-height: 1; opacity: 0.18; }
+        .s13c .sx-t { font-family: var(--f-display); font-weight: 800; font-size: 54px; letter-spacing: -0.03em; line-height: 1.02; margin-top: 20px; }
+        .s13c .sx p { font-size: 25px; line-height: 1.4; margin-top: 16px; color: var(--ink-mute); max-width: 520px; }
+        .s13c .sx-col { position: absolute !important; top: 340px; font-family: var(--f-display); font-weight: 700; font-size: 26px; letter-spacing: 0.14em; text-transform: uppercase; }
+        .s13c .sx-col span { font-weight: 400; margin-left: 6px; }
+        .s13c .h1c { left: 400px; color: #a9c46c; }
+        .s13c .h2c { left: calc(400px + (1920px - 400px - 150px + 26px) / 2); color: var(--ink-mute); }
+        .s13c .sx-row { position: absolute !important; left: var(--pad); width: 220px; font-size: 21px; line-height: 1.35; color: var(--ink-faint); }
+        .s13c .sx-row b { display: block; font-family: var(--f-display); font-weight: 800; font-size: 40px; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 6px; }
+        .s13c .r1 { top: 470px; } .s13c .r2 { top: 778px; }
+
         /* ===========================================
            STEUERUNG + EDITOR (außerhalb der Bühne)
            =========================================== */
@@ -847,25 +864,20 @@
                 </div>
             </section>
 
-            <!-- === 13 SWOT als Wind-Bild ===
-                 Sprecher: Rechts der Rückenwind (Stärken intern, Chancen extern), links der Gegenwind
-                 (Schwächen intern, Risiken extern). Entscheidend: Rückenwind nur dort, wo Wind und schwaches Netz zusammenkommen. -->
-            <section class="slide s13w" data-roman="V." data-meta="Synthese · SWOT" aria-label="SWOT">
-                <div class="head"><div class="h2 rv d1">Was uns antreibt – und <span class="it">bremst</span><span class="dot">.</span></div></div>
-                <svg class="sw-streaks" viewBox="0 0 1920 1080" aria-hidden="true">
-                    <g class="neg"><path d="M150 470 C 400 440, 620 500, 820 480"/><path d="M150 640 C 420 620, 600 680, 820 650"/><path d="M150 820 C 380 800, 640 860, 820 830"/></g>
-                    <g class="pos"><path d="M1770 470 C 1520 440, 1300 500, 1100 480"/><path d="M1770 640 C 1500 620, 1320 680, 1100 650"/><path d="M1770 820 C 1540 800, 1280 860, 1100 830"/></g>
-                </svg>
-                <div class="sw-col neg">
-                    <div class="sw-title rv d2"><span>Gegenwind</span><small>Schwächen &amp; Risiken</small></div>
-                    <div class="sw-grp"><div class="sw-h">Schwächen <em>intern</em></div><ul><li class="pill w" style="--i:0">Machbarkeit noch nicht nachgewiesen</li><li class="pill w" style="--i:1">Wind teurer je kW als PV</li><li class="pill w" style="--i:2">Keine Referenzen, kein Servicenetz</li></ul></div>
-                    <div class="sw-grp"><div class="sw-h">Risiken <em>extern</em></div><ul><li class="pill t" style="--i:0">Etablierte solare Wettbewerber</li><li class="pill t" style="--i:1">Preissensible Abnehmer</li><li class="pill t" style="--i:2">Regulatorische Hürden für MED</li></ul></div>
-                </div>
-                <div class="sw-mid"><canvas id="swotMill" aria-label="3D-Windrad"></canvas></div>
-                <div class="sw-col pos">
-                    <div class="sw-title rv d2"><span>Rückenwind</span><small>Stärken &amp; Chancen</small></div>
-                    <div class="sw-grp"><div class="sw-h">Stärken <em>intern</em></div><ul><li class="pill s" style="--i:0">Hybrid: Wind + PV + Speicher</li><li class="pill s" style="--i:1">Modular: AGRI, MED, Kapazität</li><li class="pill s" style="--i:2">Robuste, sichtbare Segeltechnik</li></ul></div>
-                    <div class="sw-grp"><div class="sw-h">Chancen <em>extern</em></div><ul><li class="pill o" style="--i:0">Hohe Verluste, wachsender Kühlmarkt</li><li class="pill o" style="--i:1">35–50 % Förderung (MIDH)</li><li class="pill o" style="--i:2">Erzeugerorganisationen als Betreiber</li></ul></div>
+            <!-- === 13 SWOT: eine Aussage, vier Felder ===
+                 Sprecher: Fazit zuerst – starke Idee, aber noch nicht bewiesen. Dann je Feld EIN Satz:
+                 Stärke Hybrid & modular · Schwäche: Machbarkeit offen · Chance: großer Bedarf + Förderung · Risiko: Solar-Konkurrenz. -->
+            <section class="slide s13c" data-roman="V." data-meta="Synthese · SWOT" aria-label="SWOT">
+                <div class="head"><div class="h2 rv d1">Starke Idee – noch nicht <span class="it">bewiesen</span><span class="dot">.</span></div></div>
+                <div class="sx-col h1c rv d2">Hilft uns <span>↑</span></div>
+                <div class="sx-col h2c rv d2">Bremst uns <span>↓</span></div>
+                <div class="sx-row r1 rv d2"><b>Intern</b>was wir selbst<br>beeinflussen</div>
+                <div class="sx-row r2 rv d2"><b>Extern</b>was der Markt<br>vorgibt</div>
+                <div class="sx-grid">
+                    <div class="card green sx rv d3"><span class="sx-l">S</span><div class="sx-t">Hybrid &amp; modular</div><p>Wind + Solar + Speicher · ein System für AGRI und MED</p></div>
+                    <div class="card sx rv d4"><span class="sx-l">W</span><div class="sx-t">Noch nicht bewiesen</div><p>Machbarkeit offen · Wind teurer je kW als Solar</p></div>
+                    <div class="card green sx rv d5"><span class="sx-l">O</span><div class="sx-t">Bedarf + Förderung</div><p>5,7 Mrd. € Verluste pro Jahr · 35–50 % staatlicher Zuschuss</p></div>
+                    <div class="card sx rv d6"><span class="sx-l">T</span><div class="sx-t">Solar-Konkurrenz</div><p>über 1.200 Ecofrost-Anlagen · preissensible Kunden</p></div>
                 </div>
             </section>
 
@@ -1421,11 +1433,6 @@
                     angle += speed * dt; rotor.rotation.z = angle;            // dreht so, dass er nach links "pustet"
                     g.rotation.y = 0.55 - Math.PI / 2 + Math.sin(s * 0.5) * 0.06;
                 };
-            }, true);
-            const swc = document.getElementById('swotMill');
-            if (swc) add(swc, 340, 700, 30, [0.4, 0.5, 12.6], [0, 0, 0], (scene) => {
-                const { g, rotor } = buildTurbine(); scene.add(g);
-                return (s) => { rotor.rotation.z = -s * 1.3; g.rotation.y = Math.sin(s * 0.4) * 0.25; };
             }, true);
             document.querySelectorAll('canvas.mini3d').forEach((c) => {
                 const k = c.dataset.obj;
