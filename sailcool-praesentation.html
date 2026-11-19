@@ -192,7 +192,8 @@
            =========================================== */
         .s05 .plate { left: var(--pad); right: var(--pad); top: 420px; height: 520px; }
         .s05 .plate .card { height: 100%; padding: 0 60px; display: flex; align-items: center; }
-        .flow { display: grid; grid-template-columns: 1fr 80px 1fr 80px 1fr 80px 1fr; align-items: center; width: 100%; }
+        .flow { display: grid; grid-template-columns: 1fr 80px 1fr 80px 1fr 80px 1fr; align-items: start; width: 100%; }
+        .flow .op { padding-top: 110px; }
         .flow .st { text-align: center; }
         .flow .st .ic { height: 290px; display: grid; place-items: center; }
         .flow .st .ic canvas { width: 300px; height: 290px; display: none; }
@@ -432,6 +433,20 @@
         .s01 .turbine { position: absolute !important; right: 120px; top: 90px; width: 700px; height: 930px; }
         .s01 .turbine canvas { width: 700px; height: 930px; display: block; }
         .s01 .turbine .shadow { position: absolute; left: 50%; bottom: 28px; width: 260px; height: 34px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(21,20,15,0.28), transparent); }
+
+
+        /* ===========================================
+           3D-SCHRIFTZUG auf der letzten Folie
+           Jeder Buchstabe hat extrudierte Seitenflächen (gestapelte Schatten)
+           und klappt nacheinander von oben herein.
+           =========================================== */
+        .s16 .mega { perspective: 1600px; display: flex; align-items: flex-end; }
+        .s16 .mega .ch { display: inline-block; transform-origin: 50% 85%; opacity: 0;
+            transform: translateY(-260px) rotateX(-110deg) scale(0.9);
+            transition: transform 1.05s cubic-bezier(0.2, 0.9, 0.25, 1.18), opacity 0.35s ease;
+            transition-delay: calc(0.35s + var(--i) * 0.13s); }
+        .s16 .mega .ch.dot { color: var(--coral); transition-timing-function: cubic-bezier(0.3, 1.6, 0.5, 1), ease; }
+        .slide.visible .s16 .mega .ch, .s16.visible .mega .ch { opacity: 1; transform: none; }
 
         /* ===========================================
            STEUERUNG + EDITOR (außerhalb der Bühne)
@@ -711,7 +726,7 @@
             <section class="slide s16" data-meta="Fragen & Diskussion" aria-label="Ende">
                 <div class="ask rv d1"><div class="eyebrow">Danke für eure Aufmerksamkeit</div><span class="it">Fragen?</span></div>
                 <div class="team rv d2"><div>Sven Feuerbacher</div><div>Patricia Walter</div><div>Felix Fleig</div><div>David Ammann</div><div>Ilias Ainous</div></div>
-                <div class="mega rv d3">Sailcool<span class="dot">.</span></div>
+                <div class="mega" data-word="Sailcool."></div>
             </section>
 
         </main>
@@ -744,6 +759,23 @@
                 const d = +ch, cells = [];
                 for (let k = 0; k < 20 + d + 1; k++) cells.push(`<span>${k % 10}</span>`);
                 return `<span class="od"><span class="strip" style="--y:calc(-${20 + d} * 0.9em); transition-delay:${0.15 + i * 0.18}s">${cells.join('')}</span></span>`;
+            }).join('');
+        });
+
+
+        /* ===========================================
+           3D-SCHRIFTZUG: Buchstaben einzeln aufbauen, Tiefe per gestapelten Schatten
+           =========================================== */
+        document.querySelectorAll('.mega[data-word]').forEach((el) => {
+            const depth = (side, end) => {
+                const sh = [];
+                for (let k = 1; k <= 22; k++) sh.push(`${k * 0.9}px ${k * 1.1}px 0 ${k < 22 ? side : end}`);
+                sh.push('34px 46px 50px rgba(21,20,15,0.22)');
+                return sh.join(',');
+            };
+            el.innerHTML = [...el.dataset.word].map((ch, i) => {
+                const dot = ch === '.';
+                return `<span class="ch${dot ? ' dot' : ''}" style="--i:${i}; text-shadow:${depth(dot ? '#b9503f' : '#5a5448', dot ? '#8f3a2d' : '#3a372f')}">${ch}</span>`;
             }).join('');
         });
 
@@ -1024,7 +1056,7 @@
                 const b = new T.Mesh(new T.ExtrudeGeometry(bolt, { depth: 0.05, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.015, bevelSegments: 2 }), M.mustard);
                 b.position.set(0, -0.15, 0.53); g.add(b);
                 g.rotation.x = 0.12;
-                return (s) => { g.rotation.y = -0.5 + Math.sin(s * 0.7) * 0.45; g.position.y = Math.sin(s * 1.4) * 0.05; };
+                return (s) => { g.rotation.y = -0.5 + Math.sin(s * 0.7) * 0.45; };
             }
 
             /* ---------- Kühlschränke (Gemüse / Medizin) ---------- */
@@ -1075,10 +1107,40 @@
 
             /* ---------- Szenen anlegen ---------- */
             const views = [];
-            function add(canvas, w, h, fov, cam, look, build) {
+            function add(canvas, w, h, fov, cam, look, build, fit) {
                 const v = makeView(canvas, w, h, fov); if (!v) return;
-                v.camera.position.set(...cam); v.camera.lookAt(...look);
-                views.push({ v, upd: build(v.scene), slide: canvas.closest('.slide') });
+                const upd = build(v.scene);
+                if (fit) {
+                    /* Einheitliche Ausrichtung: Kamera so lange nachführen, bis das gerenderte Objekt
+                       exakt FILL der Höhe einnimmt (bzw. MAXW der Breite) und unten auf FLOOR steht.
+                       Gemessen wird direkt an den sichtbaren Pixeln (Alphakanal). */
+                    const FILL = 0.76, FLOOR = 0.04, MAXW = 0.97;
+                    upd(0.9); v.scene.updateMatrixWorld(true);
+                    const bb = new T.Box3().setFromObject(v.scene), size = bb.getSize(new T.Vector3()), c = bb.getCenter(new T.Vector3());
+                    const dir = new T.Vector3(...cam).sub(new T.Vector3(...look)).normalize();
+                    const tan = Math.tan(T.MathUtils.degToRad(fov / 2));
+                    let d = size.y / FILL / (2 * tan) + size.z / 2;
+                    const target = c.clone();
+                    const gl = v.renderer.getContext(), bw = gl.drawingBufferWidth, bh = gl.drawingBufferHeight, px = new Uint8Array(bw * bh * 4);
+                    const place = () => { v.camera.position.copy(target).addScaledVector(dir, d); v.camera.lookAt(target); };
+                    for (let it = 0; it < 6; it++) {
+                        place(); v.renderer.render(v.scene, v.camera);
+                        gl.readPixels(0, 0, bw, bh, gl.RGBA, gl.UNSIGNED_BYTE, px);
+                        let top = -1, bot = bh, l = bw, r = -1;
+                        for (let y = 0; y < bh; y += 2) for (let x = 0; x < bw; x += 2) if (px[(y * bw + x) * 4 + 3] > 40) {
+                            if (y > top) top = y; if (y < bot) bot = y; if (x < l) l = x; if (x > r) r = x;
+                        }
+                        if (top < 0) break;
+                        const hFrac = (top - bot) / bh, wFrac = (r - l) / bw;
+                        const k = Math.max(hFrac / FILL, wFrac / MAXW);            // >1: zu groß → weiter weg
+                        const worldPerFrac = 2 * d * tan;                           // Weltmaß pro Canvas-Höhe
+                        target.y += (bot / bh - FLOOR) * worldPerFrac * 0.8;        // Bodenlinie angleichen
+                        target.x += ((l + r) / 2 / bw - 0.5) * worldPerFrac * (bw / bh);
+                        d *= Math.pow(k, 0.9);
+                    }
+                    place();
+                } else { v.camera.position.set(...cam); v.camera.lookAt(...look); }
+                views.push({ v, upd, slide: canvas.closest('.slide') });
             }
             const title = document.getElementById('turbine3d');
             if (title) add(title, 700, 930, 30, [1.2, 0.2, 13.2], [0, -0.25, 0], (scene) => {
@@ -1087,13 +1149,13 @@
             });
             document.querySelectorAll('canvas.mini3d').forEach((c) => {
                 const k = c.dataset.obj;
-                if (k === 'wind') add(c, 300, 290, 30, [0.9, 0.0, 12.6], [0, -0.5, 0], (scene) => {
+                if (k === 'wind') add(c, 300, 290, 30, [0.9, 0.6, 12.6], [0, 0, 0], (scene) => {
                     const { g, rotor, tower } = buildTurbine(); g.position.y = 0.85; tower.scale.set(1.6, 1, 1.6); scene.add(g);
                     return (s) => { rotor.rotation.z = -s * 1.4; g.rotation.y = -0.4 + Math.sin(s * 0.4) * 0.25; };
-                });
-                if (k === 'solar') add(c, 300, 290, 30, [0.9, 1.4, 7.4], [-0.1, 0.2, 0], buildSolar);
-                if (k === 'battery') add(c, 300, 290, 30, [0, 0.9, 6.2], [0, 0.05, 0], buildBattery);
-                if (k === 'fridge') add(c, 300, 290, 30, [0, 0.9, 7.4], [0, -0.05, 0], buildFridges);
+                }, true);
+                if (k === 'solar') add(c, 300, 290, 30, [0.9, 1.0, 7.4], [0, 0, 0], buildSolar, true);
+                if (k === 'battery') add(c, 300, 290, 30, [0, 0.8, 6.2], [0, 0, 0], buildBattery, true);
+                if (k === 'fridge') add(c, 300, 290, 30, [0, 0.8, 7.4], [0, 0, 0], buildFridges, true);
             });
             if (views.length) document.body.classList.add('has3d');
 
