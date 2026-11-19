@@ -362,6 +362,13 @@
         .slide.visible .odo .strip { transform: translateY(var(--y)); }
         .odo .sep { line-height: 0.9em; }
 
+        /* Folie 3: Zahl + Grafik in einer Zeile, kurzer Text darunter */
+        .s03v .cards3 { top: 560px; }
+        .s03v .card { height: 300px; padding: 50px 48px; }
+        .krow { display: flex; align-items: center; justify-content: space-between; gap: 24px; height: 130px; }
+        .krow .k { margin-top: 0 !important; }
+        .s03v .cards3 p { font-size: 28px; margin-top: 26px; }
+
         /* Füllstand */
         .vz { height: 64px; display: flex; align-items: center; gap: 16px; margin-bottom: 6px; }
         .vz-l { font-family: var(--f-display); font-weight: 600; font-size: 20px; letter-spacing: 0.04em; color: var(--ink-mute); white-space: nowrap; }
@@ -381,7 +388,7 @@
         /* 24-h-Uhr (Ring) */
         .clock circle { fill: none; stroke-width: 9; }
         .clock .trk { stroke: var(--coral); stroke-dasharray: 4 5; }
-        .clock .val { stroke: var(--ink); stroke-linecap: butt; stroke-dasharray: 188.5; stroke-dashoffset: 188.5; transition: stroke-dashoffset 1.6s var(--kpi-ease) 0.5s; transform: rotate(-90deg); transform-origin: 32px 32px; }
+        .clock .val { stroke: var(--ink); stroke-linecap: butt; stroke-dasharray: 175.9; stroke-dashoffset: 175.9; transition: stroke-dashoffset 1.6s var(--kpi-ease) 0.5s; transform: rotate(-90deg); transform-origin: 32px 32px; }
         .slide.visible .clock .val { stroke-dashoffset: var(--off); }
 
         /* Wachsende Balken (Kleinwind + Trichter) */
@@ -492,9 +499,9 @@
                     <div class="h2 rv d2">Kühlung gibt es –<br>nur nicht am <span class="it">Feld</span><span class="dot">.</span></div>
                 </div>
                 <div class="cards3">
-                    <div class="card rv d3"><div class="vz"><div class="fillbar"><i style="--w:84%"></i></div><span class="vz-l">84 % vom Bedarf 2037</span></div><div class="k">8.815</div><p>Kühlhäuser mit zusammen 40 Mio. t Kapazität</p></div>
-                    <div class="card rv d4"><div class="vz"><div class="picto"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div><span class="vz-l">3 von 4 Teilen: Kartoffeln</span></div><div class="k">¾</div><p>davon für Kartoffeln – über die Hälfte in nur zwei Bundesstaaten</p></div>
-                    <div class="card rv d5"><div class="vz"><svg class="clock" width="64" height="64" viewBox="0 0 64 64"><circle class="trk" cx="32" cy="32" r="30"/><circle class="val" cx="32" cy="32" r="30" style="--off:31.4"/></svg><span class="vz-l">täglich mehr als 4 h ohne Strom</span></div><div class="k">&lt; 20 h</div><p>Strom pro Tag in mehreren ländlichen Bundesstaaten</p></div>
+                    <div class="card rv d3"><div class="krow"><div class="k">8.815</div></div><p>Kühlhäuser in ganz Indien</p></div>
+                    <div class="card rv d4"><div class="krow"><div class="k">¾</div><div class="picto"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div></div><p>der Kapazität nur für Kartoffeln</p></div>
+                    <div class="card rv d5"><div class="krow"><div class="k">&lt; 20 h</div><svg class="clock" width="72" height="72" viewBox="0 0 64 64"><circle class="trk" cx="32" cy="32" r="28"/><circle class="val" cx="32" cy="32" r="28" style="--off:29.3"/></svg></div><p>Strom pro Tag auf dem Land</p></div>
                 </div>
             </section>
 
