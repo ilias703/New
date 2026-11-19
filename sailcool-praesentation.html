@@ -161,8 +161,8 @@
         /* ===========================================
            02 PROBLEM — große Zahl + Ringe
            =========================================== */
-        .s02 .big { position: absolute !important; left: var(--pad); top: 220px; font-family: var(--f-display); font-weight: 900; font-size: 380px; line-height: 0.82; letter-spacing: -0.06em; }
-        .s02 .big small { font-size: 120px; letter-spacing: -0.03em; margin-left: 20px; }
+        .s02 .big { display: flex; align-items: flex-end; position: absolute !important; left: var(--pad); top: 200px; font-family: var(--f-display); font-weight: 900; font-size: 380px; line-height: 0.82; letter-spacing: -0.06em; }
+        .s02 .big small { font-size: 120px; letter-spacing: -0.03em; margin-left: 24px; line-height: 1.2; }
         .s02 .line { position: absolute !important; left: var(--pad); top: 590px; font-size: 92px; }
         .s02 .rings { position: absolute !important; left: var(--pad); top: 780px; display: flex; gap: 90px; align-items: center; }
         .s02 .rings > div { display: flex; align-items: center; gap: 26px; }
@@ -173,9 +173,9 @@
         /* ===========================================
            03 / 14 — Kartenraster
            =========================================== */
-        .cards3 { position: absolute !important; left: var(--pad); right: var(--pad); top: 560px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px; }
-        .cards3 .card { height: 340px; }
-        .cards3 .k { font-family: var(--f-display); font-weight: 800; font-size: 112px; letter-spacing: -0.04em; line-height: 1; margin-top: 30px; }
+        .cards3 { position: absolute !important; left: var(--pad); right: var(--pad); top: 530px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px; }
+        .cards3 .card { height: 380px; }
+        .cards3 .k { font-family: var(--f-display); font-weight: 800; font-size: 112px; letter-spacing: -0.04em; line-height: 1; margin-top: 22px; }
         .cards3 p { font-size: 25px; line-height: 1.45; color: var(--ink-mute); margin-top: 16px; }
 
         /* ===========================================
@@ -289,7 +289,7 @@
            11 PORTER — Tabelle mit Haarlinien
            =========================================== */
         .tbl { position: absolute !important; left: var(--pad); right: var(--pad); top: 440px; }
-        .tbl .r { display: grid; grid-template-columns: 460px 300px 1fr; align-items: center; height: 104px; border-top: 1px solid var(--line); }
+        .tbl .r { display: grid; grid-template-columns: 460px 360px 1fr; align-items: center; height: 104px; border-top: 1px solid var(--line); }
         .tbl .r:last-child { border-bottom: 1px solid var(--line); }
         .tbl .r .n { font-family: var(--f-serif); font-style: italic; font-size: 28px; color: var(--ink-faint); }
         .tbl .r .lb { font-family: var(--f-display); font-weight: 700; font-size: 38px; letter-spacing: -0.02em; }
@@ -345,6 +345,75 @@
         .s16 .team { position: absolute !important; right: var(--pad); top: 200px; text-align: right; font-family: var(--f-display); font-weight: 600; font-size: 24px; line-height: 1.9; }
         .s16 .team b { color: var(--coral); font-weight: 500; margin-right: 10px; font-family: var(--f-mono); font-size: 18px; }
         .s16 .fin { position: absolute !important; right: var(--pad); bottom: 170px; font-family: var(--f-serif); font-style: italic; font-size: 40px; color: var(--coral); }
+
+
+        /* ===========================================
+           KPI-ANIMATIONEN (inspiriert von KPI Studio, im Atelier-Zero-Stil)
+           Zählwerk · Füllstand · Piktogramm · 24-h-Uhr · wachsende Balken · Tachometer
+           Alle Animationen starten, sobald die Folie .visible wird.
+           =========================================== */
+        :root { --kpi-ease: cubic-bezier(0.2, 0.75, 0.15, 1); }
+
+        /* Zählwerk (Odometer): jede Ziffer ist ein Streifen 0–9, der hochrollt */
+        .odo { display: inline-flex; align-items: flex-end; }
+        .odo .od { display: inline-block; height: 0.9em; overflow: hidden; line-height: 0.9em; }
+        .odo .strip { display: flex; flex-direction: column; transform: translateY(0); transition: transform 1.9s var(--kpi-ease); }
+        .odo .strip span { height: 0.9em; }
+        .slide.visible .odo .strip { transform: translateY(var(--y)); }
+        .odo .sep { line-height: 0.9em; }
+
+        /* Füllstand */
+        .vz { height: 64px; display: flex; align-items: center; gap: 16px; margin-bottom: 6px; }
+        .vz-l { font-family: var(--f-display); font-weight: 600; font-size: 20px; letter-spacing: 0.04em; color: var(--ink-mute); white-space: nowrap; }
+        .fillbar { position: relative; flex: 1; height: 26px; border: 1.5px solid var(--ink); border-radius: 13px; overflow: hidden; }
+        .fillbar i { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: var(--ink); transition: width 1.6s var(--kpi-ease) 0.4s; }
+        .slide.visible .fillbar i { width: var(--w); }
+        .fillbar b { position: absolute; left: 100%; top: -8px; bottom: -8px; width: 0; }
+
+        /* Piktogramm (Kisten / Personen) */
+        .picto { display: flex; gap: 10px; }
+        .picto i { width: 44px; height: 44px; border-radius: 8px; border: 1.5px solid var(--ink); background: transparent; transform: scale(0.6); opacity: 0; transition: transform 0.45s var(--kpi-ease), opacity 0.3s ease, background 0.3s ease; }
+        .slide.visible .picto i { transform: none; opacity: 1; }
+        .slide.visible .picto i.on { background: var(--ink); }
+        .slide.visible .picto i:nth-child(1) { transition-delay: 0.45s; } .slide.visible .picto i:nth-child(2) { transition-delay: 0.6s; }
+        .slide.visible .picto i:nth-child(3) { transition-delay: 0.75s; } .slide.visible .picto i:nth-child(4) { transition-delay: 0.9s; }
+
+        /* 24-h-Uhr (Ring) */
+        .clock circle { fill: none; stroke-width: 9; }
+        .clock .trk { stroke: var(--coral); stroke-dasharray: 4 5; }
+        .clock .val { stroke: var(--ink); stroke-linecap: butt; stroke-dasharray: 188.5; stroke-dashoffset: 188.5; transition: stroke-dashoffset 1.6s var(--kpi-ease) 0.5s; transform: rotate(-90deg); transform-origin: 32px 32px; }
+        .slide.visible .clock .val { stroke-dashoffset: var(--off); }
+
+        /* Wachsende Balken (Kleinwind + Trichter) */
+        .grow { transform: scaleX(0); transform-origin: left center; transition: transform 1.4s var(--kpi-ease); }
+        .slide.visible .grow { transform: scaleX(1); }
+        .slide.visible .g1 { transition-delay: 0.35s; } .slide.visible .g2 { transition-delay: 0.65s; }
+        .slide.visible .g3 { transition-delay: 0.95s; } .slide.visible .g4 { transition-delay: 1.25s; }
+        .pop { opacity: 0; transition: opacity 0.4s ease; }
+        .slide.visible .pop { opacity: 1; }
+        .slide.visible .p1 { transition-delay: 1.2s; } .slide.visible .p2 { transition-delay: 1.4s; } .slide.visible .p3 { transition-delay: 1.7s; }
+        .slide.visible .p4 { transition-delay: 1.9s; }
+
+        /* Tachometer (Porter) */
+        .gauge { display: flex; align-items: center; gap: 18px; }
+        .gauge svg { width: 120px; height: 70px; overflow: visible; }
+        .gauge .arc { fill: none; stroke: var(--line); stroke-width: 10; }
+        .gauge .tick { stroke: var(--ink-faint); stroke-width: 2; }
+        .gauge .needle { transform-origin: 60px 62px; transform: rotate(-90deg); transition: transform 1.4s cubic-bezier(.34,1.45,.5,1); }
+        .slide.visible .gauge .needle { transform: rotate(var(--a)); }
+        .slide.visible .r:nth-child(1) .needle { transition-delay: 0.4s; } .slide.visible .r:nth-child(2) .needle { transition-delay: 0.55s; }
+        .slide.visible .r:nth-child(3) .needle { transition-delay: 0.7s; } .slide.visible .r:nth-child(4) .needle { transition-delay: 0.85s; }
+        .slide.visible .r:nth-child(5) .needle { transition-delay: 1s; }
+        .gauge span { font-family: var(--f-display); font-weight: 700; font-size: 20px; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        /* Personen-Piktogramm (Befragung) */
+        .people { display: flex; gap: 14px; align-items: flex-end; height: 150px; }
+        .people svg { width: 64px; height: 120px; overflow: visible; }
+        .people svg * { fill: transparent; stroke: var(--ink); stroke-width: 2.2; transition: fill 0.35s ease; }
+        .slide.visible .people svg.on * { fill: var(--ink); }
+        .slide.visible .people svg:nth-child(1) * { transition-delay: 0.5s; } .slide.visible .people svg:nth-child(2) * { transition-delay: 0.7s; }
+        .slide.visible .people svg:nth-child(3) * { transition-delay: 0.9s; } .slide.visible .people svg:nth-child(4) * { transition-delay: 1.1s; }
+        .people .frac { font-family: var(--f-serif); font-style: italic; font-size: 40px; color: var(--ink-faint); margin-left: 12px; padding-bottom: 6px; white-space: nowrap; }
 
         /* ===========================================
            STEUERUNG + EDITOR (außerhalb der Bühne)
@@ -407,7 +476,7 @@
             <!-- === 02 PROBLEM ===
                  Sprecher: Indien ist Nr. 2 weltweit bei Obst & Gemüse – und ein großer Teil verdirbt. -->
             <section class="slide s02" data-roman="I." data-meta="Das Problem" data-src="Lok Sabha 2024 · Rajya Sabha 2023" aria-label="Problem">
-                <div class="big rv d1"><span class="count" data-to="5.7" data-dec="1">0</span><small>Mrd. €</small></div>
+                <div class="big rv d1"><span class="odo" data-value="5,7"></span><small>Mrd. €</small></div>
                 <div class="h2 line rv d2">verderben jährlich nach der <span class="it">Ernte</span><span class="dot">.</span></div>
                 <div class="rings rv d3">
                     <div><span class="ring">15 %</span><p><b>Obst</b>gehen bis zu verloren</p></div>
@@ -417,15 +486,15 @@
 
             <!-- === 03 URSACHE ===
                  Sprecher: Kein absoluter Kapazitätsmangel – falsch verteilt, und Strom unzuverlässig. -->
-            <section class="slide s03" data-roman="I." data-meta="Das Problem" data-src="IANS 2026 · Rajya Sabha 2025" aria-label="Ursache">
+            <section class="slide s03 s03v" data-roman="I." data-meta="Das Problem" data-src="IANS 2026 · Rajya Sabha 2025" aria-label="Ursache">
                 <div class="head">
                     
                     <div class="h2 rv d2">Kühlung gibt es –<br>nur nicht am <span class="it">Feld</span><span class="dot">.</span></div>
                 </div>
                 <div class="cards3">
-                    <div class="card rv d3"><div class="k">8.815</div><p>Kühlhäuser mit zusammen 40 Mio. t Kapazität</p></div>
-                    <div class="card rv d4"><div class="k">¾</div><p>davon für Kartoffeln – über die Hälfte in nur zwei Bundesstaaten</p></div>
-                    <div class="card rv d5"><div class="k">&lt; 20 h</div><p>Strom pro Tag in mehreren ländlichen Bundesstaaten</p></div>
+                    <div class="card rv d3"><div class="vz"><div class="fillbar"><i style="--w:84%"></i></div><span class="vz-l">84 % vom Bedarf 2037</span></div><div class="k">8.815</div><p>Kühlhäuser mit zusammen 40 Mio. t Kapazität</p></div>
+                    <div class="card rv d4"><div class="vz"><div class="picto"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div><span class="vz-l">3 von 4 Teilen: Kartoffeln</span></div><div class="k">¾</div><p>davon für Kartoffeln – über die Hälfte in nur zwei Bundesstaaten</p></div>
+                    <div class="card rv d5"><div class="vz"><svg class="clock" width="64" height="64" viewBox="0 0 64 64"><circle class="trk" cx="32" cy="32" r="30"/><circle class="val" cx="32" cy="32" r="30" style="--off:31.4"/></svg><span class="vz-l">täglich mehr als 4 h ohne Strom</span></div><div class="k">&lt; 20 h</div><p>Strom pro Tag in mehreren ländlichen Bundesstaaten</p></div>
                 </div>
             </section>
 
@@ -505,9 +574,9 @@
                 </div>
                 <div class="plate rv d3">
                     <div class="card">
-                        <div class="bar"><div class="lb">China</div><div class="tr"><div class="fl" style="width:700px"></div><div class="v">704 MW</div></div></div>
-                        <div class="bar"><div class="lb">USA</div><div class="tr"><div class="fl" style="width:155px"></div><div class="v">156 MW</div></div></div>
-                        <div class="bar hl"><div class="lb">Indien</div><div class="tr"><div class="fl"></div><div class="v">3–5 MW</div></div></div>
+                        <div class="bar"><div class="lb">China</div><div class="tr"><div class="fl grow g1" style="width:700px"></div><div class="v pop p1"><span class="count" data-to="704">0</span> MW</div></div></div>
+                        <div class="bar"><div class="lb">USA</div><div class="tr"><div class="fl grow g2" style="width:155px"></div><div class="v pop p2"><span class="count" data-to="156">0</span> MW</div></div></div>
+                        <div class="bar hl"><div class="lb">Indien</div><div class="tr"><div class="fl grow g3"></div><div class="v pop p3">3–5 MW</div></div></div>
                     </div>
                     <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br bb"></i>
                 </div>
@@ -525,10 +594,10 @@
                     <div class="h2 rv d2">Von 24,9 Mrd. € zum realen <span class="it">Absatz</span><span class="dot">.</span></div>
                 </div>
                 <div class="pot">
-                    <div class="r rv d2"><span class="rm">A</span><div class="lb"><b>Theoretisch</b><span>gesamte Kapazitätslücke</span></div><div class="ln" style="width:100%"></div><div class="v">24,9 Mrd. €</div></div>
-                    <div class="r rv d3"><span class="rm">B</span><div class="lb"><b>Dezentral</b><span>10 % an der ersten Meile</span></div><div class="ln" style="width:77%"></div><div class="v">2,5 Mrd. €</div></div>
-                    <div class="r rv d4"><span class="rm">C</span><div class="lb"><b>Windgeeignet</b><span>20 % davon</span></div><div class="ln" style="width:61%"></div><div class="v">0,5 Mrd. €</div></div>
-                    <div class="r hl rv d5"><span class="rm">D</span><div class="lb"><b>Absatz</b><span>1 % in zehn Jahren</span></div><div class="ln" style="width:16%"></div><div class="v">5 Mio. €</div></div>
+                    <div class="r rv d2"><span class="rm">A</span><div class="lb"><b>Theoretisch</b><span>gesamte Kapazitätslücke</span></div><div class="ln grow g1" style="width:100%"></div><div class="v">24,9 Mrd. €</div></div>
+                    <div class="r rv d3"><span class="rm">B</span><div class="lb"><b>Dezentral</b><span>10 % an der ersten Meile</span></div><div class="ln grow g2" style="width:77%"></div><div class="v">2,5 Mrd. €</div></div>
+                    <div class="r rv d4"><span class="rm">C</span><div class="lb"><b>Windgeeignet</b><span>20 % davon</span></div><div class="ln grow g3" style="width:61%"></div><div class="v">0,5 Mrd. €</div></div>
+                    <div class="r hl rv d5"><span class="rm">D</span><div class="lb"><b>Absatz</b><span>1 % in zehn Jahren</span></div><div class="ln grow g4" style="width:16%"></div><div class="v">5 Mio. €</div></div>
                 </div>
                 <div class="pot-note rv d6"><span class="ring m">30</span>Anlagen pro Jahr – ambitioniert, aber nicht unrealistisch</div>
             </section>
@@ -568,11 +637,11 @@
                     <div class="h2 rv d2">Wettbewerbsdruck: mittel bis <span class="it">hoch</span><span class="dot">.</span></div>
                 </div>
                 <div class="tbl">
-                    <div class="r rv d2"><span class="lb">Abnehmermacht</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><span>hoch</span></span><span class="why">preissensibel, abhängig von Förderung und Krediten</span></div>
-                    <div class="r rv d3"><span class="lb">Substitute</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><span>hoch</span></span><span class="why">Verdunstungskühlung, Großkühlhäuser, Sofortverkauf</span></div>
-                    <div class="r rv d4"><span class="lb">Rivalität</span><span class="dots"><i class="on"></i><i class="on"></i><i></i><span>mittel</span></span><span class="why">wenige Anbieter, aber mit Referenzen</span></div>
-                    <div class="r rv d5"><span class="lb">Neue Anbieter</span><span class="dots"><i class="on"></i><i class="on"></i><i></i><span>mittel</span></span><span class="why">Hürden: Vertrieb, Service, Förderfähigkeit</span></div>
-                    <div class="r rv d6"><span class="lb">Lieferantenmacht</span><span class="dots"><i class="on"></i><i class="half"></i><i></i><span>ger.–mittel</span></span><span class="why">PV, Batterie, Kältetechnik sind Standard</span></div>
+                    <div class="r rv d2"><span class="lb">Abnehmermacht</span><span class="gauge"><svg viewBox="0 0 120 70"><path class="arc" d="M10 62 A50 50 0 0 1 110 62"/><line class="tick" x1="10" y1="62" x2="18" y2="62"/><line class="tick" x1="60" y1="12" x2="60" y2="20"/><line class="tick" x1="110" y1="62" x2="102" y2="62"/><g class="needle" style="--a:68deg"><line x1="60" y1="62" x2="60" y2="20" stroke="#15140f" stroke-width="4" stroke-linecap="round"/></g><circle cx="60" cy="62" r="7" fill="#15140f"/></svg><span>hoch</span></span><span class="why">preissensibel, abhängig von Förderung und Krediten</span></div>
+                    <div class="r rv d3"><span class="lb">Substitute</span><span class="gauge"><svg viewBox="0 0 120 70"><path class="arc" d="M10 62 A50 50 0 0 1 110 62"/><line class="tick" x1="10" y1="62" x2="18" y2="62"/><line class="tick" x1="60" y1="12" x2="60" y2="20"/><line class="tick" x1="110" y1="62" x2="102" y2="62"/><g class="needle" style="--a:68deg"><line x1="60" y1="62" x2="60" y2="20" stroke="#15140f" stroke-width="4" stroke-linecap="round"/></g><circle cx="60" cy="62" r="7" fill="#15140f"/></svg><span>hoch</span></span><span class="why">Verdunstungskühlung, Großkühlhäuser, Sofortverkauf</span></div>
+                    <div class="r rv d4"><span class="lb">Rivalität</span><span class="gauge"><svg viewBox="0 0 120 70"><path class="arc" d="M10 62 A50 50 0 0 1 110 62"/><line class="tick" x1="10" y1="62" x2="18" y2="62"/><line class="tick" x1="60" y1="12" x2="60" y2="20"/><line class="tick" x1="110" y1="62" x2="102" y2="62"/><g class="needle" style="--a:0deg"><line x1="60" y1="62" x2="60" y2="20" stroke="#15140f" stroke-width="4" stroke-linecap="round"/></g><circle cx="60" cy="62" r="7" fill="#15140f"/></svg><span>mittel</span></span><span class="why">wenige Anbieter, aber mit Referenzen</span></div>
+                    <div class="r rv d5"><span class="lb">Neue Anbieter</span><span class="gauge"><svg viewBox="0 0 120 70"><path class="arc" d="M10 62 A50 50 0 0 1 110 62"/><line class="tick" x1="10" y1="62" x2="18" y2="62"/><line class="tick" x1="60" y1="12" x2="60" y2="20"/><line class="tick" x1="110" y1="62" x2="102" y2="62"/><g class="needle" style="--a:0deg"><line x1="60" y1="62" x2="60" y2="20" stroke="#15140f" stroke-width="4" stroke-linecap="round"/></g><circle cx="60" cy="62" r="7" fill="#15140f"/></svg><span>mittel</span></span><span class="why">Hürden: Vertrieb, Service, Förderfähigkeit</span></div>
+                    <div class="r rv d6"><span class="lb">Lieferantenmacht</span><span class="gauge"><svg viewBox="0 0 120 70"><path class="arc" d="M10 62 A50 50 0 0 1 110 62"/><line class="tick" x1="10" y1="62" x2="18" y2="62"/><line class="tick" x1="60" y1="12" x2="60" y2="20"/><line class="tick" x1="110" y1="62" x2="102" y2="62"/><g class="needle" style="--a:-34deg"><line x1="60" y1="62" x2="60" y2="20" stroke="#15140f" stroke-width="4" stroke-linecap="round"/></g><circle cx="60" cy="62" r="7" fill="#15140f"/></svg><span>ger.–mittel</span></span><span class="why">PV, Batterie, Kältetechnik sind Standard</span></div>
                 </div>
             </section>
 
@@ -584,9 +653,9 @@
                     <div class="h2 rv d2">Vier Stimmen aus <span class="it">Indien</span><span class="dot">.</span></div>
                 </div>
                 <div class="sv">
-                    <div class="rv d3"><span class="ring">3<small>/4</small></span><h3>Strom unzuverlässig</h3><p>auf dem Land – bei Ausfall läuft meist der Dieselgenerator</p></div>
-                    <div class="rv d4"><span class="ring">4<small>/4</small></span><h3>Obst & Gemüse</h3><p>profitieren am meisten von dezentraler Kühlung</p></div>
-                    <div class="rv d5"><span class="ring">3<small>/4</small></span><h3>Würden mehr zahlen</h3><p>für nachhaltige Energie – doch der Nutzen muss zählen</p></div>
+                    <div class="rv d3"><div class="people"><svg viewBox="0 0 64 120" class="on"><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><svg viewBox="0 0 64 120" class="on"><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><svg viewBox="0 0 64 120" class="on"><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><svg viewBox="0 0 64 120" class=""><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><span class="frac">3 von 4</span></div><h3>Strom unzuverlässig</h3><p>auf dem Land – bei Ausfall läuft meist der Dieselgenerator</p></div>
+                    <div class="rv d4"><div class="people"><svg viewBox="0 0 64 120" class="on"><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><svg viewBox="0 0 64 120" class="on"><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><svg viewBox="0 0 64 120" class="on"><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><svg viewBox="0 0 64 120" class="on"><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><span class="frac">4 von 4</span></div><h3>Obst & Gemüse</h3><p>profitieren am meisten von dezentraler Kühlung</p></div>
+                    <div class="rv d5"><div class="people"><svg viewBox="0 0 64 120" class="on"><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><svg viewBox="0 0 64 120" class="on"><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><svg viewBox="0 0 64 120" class="on"><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><svg viewBox="0 0 64 120" class=""><circle cx="32" cy="20" r="16"/><path d="M6 118 V70 Q6 46 32 46 Q58 46 58 70 V118 Z"/></svg><span class="frac">3 von 4</span></div><h3>Würden mehr zahlen</h3><p>für nachhaltige Energie – doch der Nutzen muss zählen</p></div>
                 </div>
             </section>
 
@@ -659,6 +728,18 @@
         })();
 
         /* ===========================================
+           ZÄHLWERK aufbauen: jede Ziffer wird ein Streifen, der zweimal 0–9 durchläuft
+           =========================================== */
+        document.querySelectorAll('.odo').forEach((el) => {
+            el.innerHTML = [...el.dataset.value].map((ch, i) => {
+                if (!/\d/.test(ch)) return `<span class="sep">${ch}</span>`;
+                const d = +ch, cells = [];
+                for (let k = 0; k < 20 + d + 1; k++) cells.push(`<span>${k % 10}</span>`);
+                return `<span class="od"><span class="strip" style="--y:calc(-${20 + d} * 0.9em); transition-delay:${0.15 + i * 0.18}s">${cells.join('')}</span></span>`;
+            }).join('');
+        });
+
+        /* ===========================================
            SLIDE PRESENTATION CONTROLLER
            =========================================== */
         class SlidePresentation {
@@ -723,7 +804,7 @@
                 slide.querySelectorAll('.count').forEach((el) => {
                     const to = parseFloat(el.dataset.to), dec = parseInt(el.dataset.dec || '0', 10), t0 = performance.now();
                     const tick = (t) => {
-                        const p = Math.min((t - t0) / 900, 1);
+                        const p = Math.max(0, Math.min((t - t0 - 500) / 1300, 1));
                         el.textContent = (to * (1 - Math.pow(1 - p, 3))).toFixed(dec).replace('.', ',');
                         if (p < 1) requestAnimationFrame(tick);
                     };
