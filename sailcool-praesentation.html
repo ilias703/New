@@ -95,7 +95,7 @@
         .rail { position: absolute !important; top: 0; bottom: 0; width: 48px; display: flex; align-items: center; justify-content: center; }
         .rail span { white-space: nowrap; font-family: var(--f-display); font-weight: 600; font-size: 13px; letter-spacing: 0.42em; text-transform: uppercase; color: var(--ink-faint); transform: rotate(-90deg); }
         .rail.l { left: 24px; } .rail.r { right: 24px; } .rail.r span { transform: rotate(90deg); }
-        .sec-rule { position: absolute !important; left: var(--pad); right: var(--pad); top: 118px; display: flex; justify-content: space-between; align-items: baseline; padding-top: 14px; border-top: 1px solid var(--ink); font-family: var(--f-display); font-weight: 600; font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
+        .sec-rule { position: absolute !important; left: var(--pad); right: var(--pad); top: 90px; display: flex; gap: 22px; align-items: baseline; padding-top: 14px; border-top: 1px solid var(--ink); font-family: var(--f-display); font-weight: 600; font-size: 15px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-faint); }
         .sec-rule .rom { font-family: var(--f-serif); font-style: italic; font-weight: 500; font-size: 26px; letter-spacing: 0; text-transform: none; color: var(--coral); }
         .foot { position: absolute !important; left: var(--pad); right: var(--pad); bottom: 36px; display: flex; justify-content: space-between; font-family: var(--f-mono); font-size: 14px; letter-spacing: 0.04em; color: var(--ink-faint); }
 
@@ -156,7 +156,7 @@
         .s01 .sub { margin-top: 14px; font-size: 26px; color: var(--ink-mute); }
         .s01 .plate { right: var(--pad); top: 200px; width: 560px; height: 700px; }
         .s01 .plate .card { height: 100%; padding: 0; display: grid; place-items: center; }
-        .index { position: absolute !important; left: var(--pad); bottom: 110px; display: flex; gap: 36px; font-family: var(--f-display); font-weight: 600; font-size: 18px; color: var(--ink-faint); }
+        .index { position: absolute !important; left: var(--pad); bottom: 110px; display: flex; gap: 40px; font-family: var(--f-display); font-weight: 600; font-size: 22px; color: var(--ink-mute); }
         .index b { color: var(--coral); font-weight: 600; margin-right: 8px; }
         .index span:first-child { color: var(--ink); }
 
@@ -177,7 +177,7 @@
            =========================================== */
         .cards3 { position: absolute !important; left: var(--pad); right: var(--pad); top: 560px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px; }
         .cards3 .card { height: 340px; }
-        .cards3 .k { font-family: var(--f-display); font-weight: 800; font-size: 112px; letter-spacing: -0.04em; line-height: 1; margin-top: 40px; }
+        .cards3 .k { font-family: var(--f-display); font-weight: 800; font-size: 112px; letter-spacing: -0.04em; line-height: 1; margin-top: 30px; }
         .cards3 p { font-size: 25px; line-height: 1.45; color: var(--ink-mute); margin-top: 16px; }
 
         /* ===========================================
@@ -291,7 +291,7 @@
            11 PORTER — Tabelle mit Haarlinien
            =========================================== */
         .tbl { position: absolute !important; left: var(--pad); right: var(--pad); top: 440px; }
-        .tbl .r { display: grid; grid-template-columns: 80px 460px 300px 1fr; align-items: center; height: 104px; border-top: 1px solid var(--line); }
+        .tbl .r { display: grid; grid-template-columns: 460px 300px 1fr; align-items: center; height: 104px; border-top: 1px solid var(--line); }
         .tbl .r:last-child { border-bottom: 1px solid var(--line); }
         .tbl .r .n { font-family: var(--f-serif); font-style: italic; font-size: 28px; color: var(--ink-faint); }
         .tbl .r .lb { font-family: var(--f-display); font-weight: 700; font-size: 38px; letter-spacing: -0.02em; }
@@ -402,9 +402,8 @@
                         </svg>
                     </div>
                     <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br bb"></i>
-                    <div class="cap"><span><b>Plate Nº 01</b> — SAILWIND</span><span>47.6779° N · 9.1732° E</span></div>
                 </div>
-                <div class="index rv d5"><span><b>01</b>Sven Feuerbacher</span><span><b>02</b>Patricia Walter</span><span><b>03</b>Felix Fleig</span><span><b>04</b>David Ammann</span><span><b>05</b>Ilias Ainous</span></div>
+                <div class="index rv d5"><span>Sven Feuerbacher</span><span>Patricia Walter</span><span>Felix Fleig</span><span>David Ammann</span><span>Ilias Ainous</span></div>
             </section>
 
             <!-- === 02 PROBLEM ===
@@ -422,13 +421,13 @@
                  Sprecher: Kein absoluter Kapazitätsmangel – falsch verteilt, und Strom unzuverlässig. -->
             <section class="slide s03" data-roman="I." data-meta="Das Problem" data-src="IANS 2026 · Rajya Sabha 2025" aria-label="Ursache">
                 <div class="head">
-                    <div class="eyebrow ink rv d1">Die Ursache</div>
+                    
                     <div class="h2 rv d2">Kühlung gibt es –<br>nur nicht am <span class="it">Feld</span><span class="dot">.</span></div>
                 </div>
                 <div class="cards3">
-                    <div class="card rv d3"><div class="row1"><span class="num">01</span><span class="tag">Kapazität</span></div><div class="k">8.815</div><p>Kühlhäuser mit zusammen 40 Mio. t Kapazität</p></div>
-                    <div class="card rv d4"><div class="row1"><span class="num">02</span><span class="tag">Verteilung</span></div><div class="k">¾</div><p>davon für Kartoffeln – über die Hälfte in nur zwei Bundesstaaten</p></div>
-                    <div class="card rv d5"><div class="row1"><span class="num">03</span><span class="tag">Strom</span></div><div class="k">&lt; 20 h</div><p>Strom pro Tag in mehreren ländlichen Bundesstaaten</p></div>
+                    <div class="card rv d3"><div class="k">8.815</div><p>Kühlhäuser mit zusammen 40 Mio. t Kapazität</p></div>
+                    <div class="card rv d4"><div class="k">¾</div><p>davon für Kartoffeln – über die Hälfte in nur zwei Bundesstaaten</p></div>
+                    <div class="card rv d5"><div class="k">&lt; 20 h</div><p>Strom pro Tag in mehreren ländlichen Bundesstaaten</p></div>
                 </div>
             </section>
 
@@ -436,12 +435,12 @@
                  Sprecher: Ein Energiesystem versorgt zwei Module. -->
             <section class="slide" data-roman="II." data-meta="Die Idee" aria-label="Idee">
                 <div class="head">
-                    <div class="eyebrow ink rv d1">Unser Konzept</div>
+                    
                     <div class="h2 rv d2">Ein Energiesystem.<br>Zwei <span class="it">Bedürfnisse</span><span class="dot">.</span></div>
                 </div>
                 <div class="mods">
-                    <div class="card rv d3"><div class="row1"><span class="num">01</span><span class="tag">Modul AGRI</span></div><h3>Obst & <span class="it">Gemüse</span></h3><p>Weniger Verluste nach der Ernte,<br>bessere Preise für Kleinbauern</p><span class="arrow">↗</span></div>
-                    <div class="card rv d4"><div class="row1"><span class="num">02</span><span class="tag">Modul MED</span></div><h3>Impfstoffe & <span class="it">Medizin</span></h3><p>Sichere Lagerung bei 2–10 °C,<br>auch in abgelegenen Orten</p><span class="arrow">↗</span></div>
+                    <div class="card rv d3"><div class="row1"><span class="tag">Modul AGRI</span></div><h3>Obst & <span class="it">Gemüse</span></h3><p>Weniger Verluste nach der Ernte,<br>bessere Preise für Kleinbauern</p></div>
+                    <div class="card rv d4"><div class="row1"><span class="tag">Modul MED</span></div><h3>Impfstoffe & <span class="it">Medizin</span></h3><p>Sichere Lagerung bei 2–10 °C,<br>auch in abgelegenen Orten</p></div>
                 </div>
             </section>
 
@@ -449,7 +448,7 @@
                  Sprecher: Wind füllt die Lücke der PV – nachts und im Monsun. SAILWIND kommt von der HTWG. -->
             <section class="slide s05" data-roman="II." data-meta="Die Idee" aria-label="Funktion">
                 <div class="head">
-                    <div class="eyebrow ink rv d1">So funktioniert's</div>
+                    
                     <div class="h2 rv d2">Wind und Sonne werden <span class="it">Kälte</span><span class="dot">.</span></div>
                 </div>
                 <div class="plate rv d3">
@@ -465,7 +464,6 @@
                         </div>
                     </div>
                     <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br bb"></i>
-                    <div class="cap"><span><b>Plate Nº 02</b> — Energiefluss SAILCOOL VILLAGE</span><span>SAILWIND: entwickelt an der HTWG Konstanz, nach historischem Vorbild</span></div>
                 </div>
             </section>
 
@@ -488,7 +486,7 @@
                  Sprecher: Kurz! Befragung nur explorativ (n = 4). -->
             <section class="slide" data-roman="III." data-meta="Methodik" aria-label="Methodik">
                 <div class="head">
-                    <div class="eyebrow ink rv d1">Vorgehen</div>
+                    
                     <div class="h2 rv d2">Vier Schritte zur <span class="it">Antwort</span><span class="dot">.</span></div>
                 </div>
                 <div class="method">
@@ -502,9 +500,9 @@
 
             <!-- === 08 KLEINWIND ===
                  Sprecher: Kleinwind ist in Indien kaum existent – Förderung 2017 ausgelaufen, PV billiger. -->
-            <section class="slide s08" data-roman="IV." data-meta="Ergebnisse · Markt" data-src="WRI India 2024 · CSTEP 2023" aria-label="Kleinwind">
+            <section class="slide s08" data-roman="IV." data-meta="Ergebnisse · Kleinwindmarkt" data-src="WRI India 2024 · CSTEP 2023" aria-label="Kleinwind">
                 <div class="head">
-                    <div class="eyebrow ink rv d1">Kleinwind in Indien</div>
+                    
                     <div class="h2 rv d2">Ein Markt, den es kaum <span class="it">gibt</span><span class="dot">.</span></div>
                 </div>
                 <div class="plate rv d3">
@@ -514,7 +512,6 @@
                         <div class="bar hl"><div class="lb">Indien</div><div class="tr"><div class="fl"></div><div class="v">3–5 MW</div></div></div>
                     </div>
                     <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br bb"></i>
-                    <div class="cap"><span><b>Plate Nº 03</b> — Installierte Kleinwind-Leistung</span><span>linear skaliert</span></div>
                 </div>
                 <div class="aside">
                     <div class="card rv d4"><span class="tag">1 kW Kleinwind</span><div class="k">ab 80.000 INR</div><p>ohne Batterie</p></div>
@@ -526,7 +523,7 @@
                  Sprecher: Von der Obergrenze runter auf ~30 Anlagen pro Jahr. Balken logarithmisch. -->
             <section class="slide" data-roman="IV." data-meta="Ergebnisse · Potenzial" data-src="Eigene Berechnung · 100 INR = 1 € · log. Skala" aria-label="Marktpotenzial">
                 <div class="head">
-                    <div class="eyebrow ink rv d1">Marktpotenzial</div>
+                    
                     <div class="h2 rv d2">Von 24,9 Mrd. € zum realen <span class="it">Absatz</span><span class="dot">.</span></div>
                 </div>
                 <div class="pot">
@@ -542,7 +539,7 @@
                  Sprecher: Solare Kühlräume sind da und gut. Unser Unterschied: Strom auch nachts/Monsun. -->
             <section class="slide s10" data-roman="IV." data-meta="Ergebnisse · Wettbewerb" aria-label="Wettbewerb">
                 <div class="left">
-                    <div class="eyebrow ink rv d1">Wettbewerb</div>
+                    
                     <div class="h2 rv d2">Solar ist schon <span class="it">da</span><span class="dot">.</span></div>
                     <p class="body rv d3">Unser Vorsprung ist nur graduell: Strom auch nachts und im Monsun.</p>
                     <div class="stat rv d4"><span class="k">&gt;1.200</span><p>Ecofrost-Kühlräume hat<br>Marktführer Ecozen installiert</p></div>
@@ -561,7 +558,7 @@
                         </div>
                     </div>
                     <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br bb"></i>
-                    <div class="cap"><span><b>Plate Nº 04</b> — Qualitative Positionierung</span><span>● Solar-Kühlräume · ○ Substitute</span></div>
+                    <div class="cap"><span></span><span>● Solar-Kühlräume · ○ Substitute</span></div>
                 </div>
             </section>
 
@@ -573,11 +570,11 @@
                     <div class="h2 rv d2">Wettbewerbsdruck: mittel bis <span class="it">hoch</span><span class="dot">.</span></div>
                 </div>
                 <div class="tbl">
-                    <div class="r rv d2"><span class="n">01</span><span class="lb">Abnehmermacht</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><span>hoch</span></span><span class="why">preissensibel, abhängig von Förderung und Krediten</span></div>
-                    <div class="r rv d3"><span class="n">02</span><span class="lb">Substitute</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><span>hoch</span></span><span class="why">Verdunstungskühlung, Großkühlhäuser, Sofortverkauf</span></div>
-                    <div class="r rv d4"><span class="n">03</span><span class="lb">Rivalität</span><span class="dots"><i class="on"></i><i class="on"></i><i></i><span>mittel</span></span><span class="why">wenige Anbieter, aber mit Referenzen</span></div>
-                    <div class="r rv d5"><span class="n">04</span><span class="lb">Neue Anbieter</span><span class="dots"><i class="on"></i><i class="on"></i><i></i><span>mittel</span></span><span class="why">Hürden: Vertrieb, Service, Förderfähigkeit</span></div>
-                    <div class="r rv d6"><span class="n">05</span><span class="lb">Lieferantenmacht</span><span class="dots"><i class="on"></i><i class="half"></i><i></i><span>ger.–mittel</span></span><span class="why">PV, Batterie, Kältetechnik sind Standard</span></div>
+                    <div class="r rv d2"><span class="lb">Abnehmermacht</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><span>hoch</span></span><span class="why">preissensibel, abhängig von Förderung und Krediten</span></div>
+                    <div class="r rv d3"><span class="lb">Substitute</span><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><span>hoch</span></span><span class="why">Verdunstungskühlung, Großkühlhäuser, Sofortverkauf</span></div>
+                    <div class="r rv d4"><span class="lb">Rivalität</span><span class="dots"><i class="on"></i><i class="on"></i><i></i><span>mittel</span></span><span class="why">wenige Anbieter, aber mit Referenzen</span></div>
+                    <div class="r rv d5"><span class="lb">Neue Anbieter</span><span class="dots"><i class="on"></i><i class="on"></i><i></i><span>mittel</span></span><span class="why">Hürden: Vertrieb, Service, Förderfähigkeit</span></div>
+                    <div class="r rv d6"><span class="lb">Lieferantenmacht</span><span class="dots"><i class="on"></i><i class="half"></i><i></i><span>ger.–mittel</span></span><span class="why">PV, Batterie, Kältetechnik sind Standard</span></div>
                 </div>
             </section>
 
@@ -585,7 +582,7 @@
                  Sprecher: Nur 4 Personen, keine Validierung – aber klare Hinweise. -->
             <section class="slide" data-roman="IV." data-meta="Ergebnisse · Befragung" data-src="n = 4 · explorativ · nicht repräsentativ" aria-label="Befragung">
                 <div class="head">
-                    <div class="eyebrow ink rv d1">Explorative Befragung</div>
+                    
                     <div class="h2 rv d2">Vier Stimmen aus <span class="it">Indien</span><span class="dot">.</span></div>
                 </div>
                 <div class="sv">
@@ -610,13 +607,13 @@
                  Sprecher: Fokus statt Gießkanne. Cooling-as-a-Service umgeht die hohe Anfangsinvestition. -->
             <section class="slide s14" data-roman="V." data-meta="Markteintritt" aria-label="Strategie">
                 <div class="head">
-                    <div class="eyebrow ink rv d1">Empfehlung</div>
+                    
                     <div class="h2 rv d2">Erst AGRI, dann <span class="it">MED</span><span class="dot">.</span></div>
                 </div>
                 <div class="cards3">
-                    <div class="card rv d3"><div class="row1"><span class="num">01</span><span class="tag">Zielgruppe</span></div><h3>Erzeuger&shy;organisationen</h3><p>bündeln Mengen, sind förderfähig, regeln den Zugang</p></div>
-                    <div class="card rv d4"><div class="row1"><span class="num">02</span><span class="tag">Modell</span></div><h3>Cooling as a Service</h3><p>Nutzungsgebühr statt hoher Anschaffung für Bauern</p></div>
-                    <div class="card later rv d5"><div class="row1"><span class="num">03</span><span class="tag">Später</span></div><h3>Modul MED</h3><p>erst nach Feldtest von AGRI und geklärter Zulassung</p></div>
+                    <div class="card rv d3"><div class="row1"><span class="tag">Zielgruppe</span></div><h3>Erzeuger&shy;organisationen</h3><p>bündeln Mengen, sind förderfähig, regeln den Zugang</p></div>
+                    <div class="card rv d4"><div class="row1"><span class="tag">Modell</span></div><h3>Cooling as a Service</h3><p>Nutzungsgebühr statt hoher Anschaffung für Bauern</p></div>
+                    <div class="card later rv d5"><div class="row1"><span class="tag">Später</span></div><h3>Modul MED</h3><p>erst nach Feldtest von AGRI und geklärter Zulassung</p></div>
                 </div>
             </section>
 
@@ -624,7 +621,7 @@
                  Sprecher: Hypothese gestützt + präzisiert (wenig Sonne/Monsun) – ohne Energiebilanz nicht bestätigt. -->
             <section class="slide s15" data-roman="VI." data-meta="Fazit & Ausblick" aria-label="Fazit">
                 <div class="head">
-                    <div class="eyebrow rv d1">Fazit</div>
+                    
                     <div class="h2 rv d2">Eine <span class="it">Nische</span> – kein Massenmarkt.</div>
                     <p class="body rv d3">Hypothese gestützt, aber nicht bestätigt: Wind lohnt sich bei viel Wind, schwachem Netz und langen Phasen mit wenig Sonne.</p>
                 </div>
@@ -638,9 +635,8 @@
             <!-- === 16 ENDE === -->
             <section class="slide s16" data-meta="Fragen & Diskussion" aria-label="Ende">
                 <div class="ask rv d1"><div class="eyebrow">Danke für eure Aufmerksamkeit</div><span class="it">Fragen?</span></div>
-                <div class="team rv d2"><div><b>01</b>Sven Feuerbacher</div><div><b>02</b>Patricia Walter</div><div><b>03</b>Felix Fleig</div><div><b>04</b>David Ammann</div><div><b>05</b>Ilias Ainous</div></div>
+                <div class="team rv d2"><div>Sven Feuerbacher</div><div>Patricia Walter</div><div>Felix Fleig</div><div>David Ammann</div><div>Ilias Ainous</div></div>
                 <div class="mega rv d3">Sailcool<span class="dot">.</span></div>
-                <div class="fin rv d4">fin.</div>
             </section>
 
         </main>
@@ -657,13 +653,10 @@
             const slides = document.querySelectorAll('.slide');
             const total = String(slides.length).padStart(3, '0');
             slides.forEach((s, i) => {
-                const pg = String(i + 1).padStart(3, '0') + ' / ' + total;
+                const pg = String(i + 1).padStart(2, '0');
                 const add = (html) => s.insertAdjacentHTML('afterbegin', html);
-                add(`<div class="foot"><span>${s.dataset.src ? 'Quelle: ' + s.dataset.src : 'Filed under — Investitionsgütermarketing'}</span><span>${pg}</span></div>`);
-                if (s.dataset.roman) add(`<div class="sec-rule"><span class="rom">${s.dataset.roman}</span><span>${s.dataset.meta}</span><span>${pg}</span></div>`);
-                add(`<div class="rail r"><span>Ländliches Indien · 20.5937° N · 78.9629° E</span></div>`);
-                add(`<div class="rail l"><span>SAILCOOL Village — Vol. 01 / MMXXVI</span></div>`);
-                add(`<div class="meta-strip"><span>HTWG Konstanz · Investitionsgütermarketing</span><span class="filed">Filed under — ${s.dataset.meta}</span><span class="live"><i></i>Abschlusspräsentation · DE</span></div>`);
+                if (i > 0) add(`<div class="foot"><span>${s.dataset.src ? 'Quelle: ' + s.dataset.src : ''}</span><span>${pg}</span></div>`);
+                if (s.dataset.roman) add(`<div class="sec-rule"><span class="rom">${s.dataset.roman}</span><span>${s.dataset.meta}</span></div>`);
             });
         })();
 
