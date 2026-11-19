@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAILCOOL VILLAGE</title>
+
+    <!-- === FONTS ===
+         Bricolage Grotesque: kräftige, eigenwillige Headlines
+         Newsreader (kursiv): ruhige Akzente
+         Figtree: gut lesbarer Fließtext -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700&family=Newsreader:ital,opsz,wght@1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           THEME — CSS CUSTOM PROPERTIES
+           Hier Farben & Schriften für das ganze Deck ändern
+           =========================================== */
+        :root {
+            --stage-bg: #1b2440;
+            --slide-bg: #f4efe4;
+
+            --paper: #f4efe4;     /* warmes Papier */
+            --paper-2: #ebe3d3;
+            --ink: #14213d;       /* tiefes Indigo */
+            --ink-soft: #4a5472;
+            --cool: #0e8a8c;      /* Kühlung / Türkis */
+            --cool-soft: #cfe7e4;
+            --sun: #f0a21a;       /* Solar / Ringelblume */
+            --chili: #c8402a;     /* Problem / Verluste */
+            --leaf: #4f7d3a;      /* AGRI */
+
+            --font-display: 'Bricolage Grotesque', sans-serif;
+            --font-accent: 'Newsreader', serif;
+            --font-body: 'Figtree', sans-serif;
+
+            --pad: 130px;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ===========================================
+           FIXED 16:9 STAGE — viewport-base.css (vollständig)
+           =========================================== */
+        html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
+        .deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
+        .deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff); }
+        .slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg, #fff); }
+        .slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
+        img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+        .deck-controls { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1000; }
+        @media print {
+            html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+            .deck-viewport { position: static; overflow: visible; background: #fff; }
+            .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+            .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
+            .slide:last-child { break-after: auto; page-break-after: auto; }
+            .deck-controls { display: none !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+        }
+
+        /* ===========================================
+           SLIDE-GRUNDLAGEN & ATMOSPHÄRE
+           Papierkörnung + feine "Windlinien" im Hintergrund
+           =========================================== */
+        .slide {
+            color: var(--ink);
+            font-family: var(--font-body);
+            transition: opacity 0.5s ease;
+        }
+        .slide::before { /* Windlinien */
+            content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080' fill='none' stroke='%2314213d' stroke-opacity='0.07' stroke-width='2'%3E%3Cpath d='M-50 820 C 400 760, 700 900, 1100 830 S 1700 760, 1980 800'/%3E%3Cpath d='M-50 870 C 380 810, 720 950, 1120 880 S 1720 810, 1980 850'/%3E%3Cpath d='M-50 920 C 360 860, 740 1000, 1140 930 S 1740 860, 1980 900'/%3E%3C/svg%3E");
+        }
+        .slide::after { /* Körnung */
+            content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.06; mix-blend-mode: multiply;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        .slide.dark { background: var(--ink); color: var(--paper); }
+        .slide.dark::before { filter: invert(1); }
+
+        /* Kopf- und Fußzeile jeder Folie */
+        .chrome {
+            position: absolute; top: 60px; left: var(--pad); right: var(--pad);
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 20px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft);
+        }
+        .chrome .brand { color: var(--ink); }
+        .chrome .brand i { font-style: normal; color: var(--cool); }
+        .dark .chrome, .dark .chrome .brand { color: rgba(244,239,228,0.7); }
+        .pageno { position: absolute; right: var(--pad); bottom: 56px; font-family: var(--font-display); font-weight: 700; font-size: 22px; color: var(--ink-soft); }
+        .dark .pageno { color: rgba(244,239,228,0.6); }
+
+        /* ===========================================
+           TYPOGRAFIE
+           =========================================== */
+        .kicker { font-size: 24px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--cool); }
+        h1, h2, .big { font-family: var(--font-display); font-weight: 800; letter-spacing: -0.025em; line-height: 0.95; }
+        h1 { font-size: 170px; }
+        h2 { font-size: 96px; }
+        h3 { font-family: var(--font-display); font-weight: 700; font-size: 44px; letter-spacing: -0.01em; line-height: 1.05; }
+        .acc { font-family: var(--font-accent); font-style: italic; font-weight: 400; letter-spacing: 0; }
+        p.lead { font-size: 36px; line-height: 1.4; color: var(--ink-soft); }
+        .dark p.lead { color: rgba(244,239,228,0.8); }
+        .title-top { position: absolute; left: var(--pad); top: 170px; right: var(--pad); }
+        .title-top .kicker { margin-bottom: 22px; }
+        .src { position: absolute; left: var(--pad); bottom: 56px; font-size: 18px; color: var(--ink-soft); opacity: 0.8; }
+        .dark .src { color: rgba(244,239,228,0.55); }
+
+        /* ===========================================
+           ANIMATIONEN — Reveal beim Aktivieren der Folie
+           =========================================== */
+        .reveal { opacity: 0; transform: translateY(36px); transition: opacity 0.85s var(--ease), transform 0.85s var(--ease); }
+        .slide.visible .reveal { opacity: 1; transform: none; }
+        .slide.visible .d1 { transition-delay: 0.08s; }
+        .slide.visible .d2 { transition-delay: 0.22s; }
+        .slide.visible .d3 { transition-delay: 0.36s; }
+        .slide.visible .d4 { transition-delay: 0.50s; }
+        .slide.visible .d5 { transition-delay: 0.64s; }
+        .slide.visible .d6 { transition-delay: 0.78s; }
+
+        /* Balken wachsen von links */
+        .grow { transform: scaleX(0); transform-origin: left center; transition: transform 1.2s var(--ease); }
+        .slide.visible .grow { transform: scaleX(1); }
+
+        /* Segel der Windmühle drehen sich */
+        .rotor { transform-box: fill-box; transform-origin: center; animation: spin 14s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ===========================================
+           FOLIE 1 — TITEL
+           =========================================== */
+        .s-title .inner { position: absolute; left: var(--pad); top: 250px; width: 1120px; }
+        .s-title h1 { font-size: 190px; }
+        .s-title h1 .v { color: var(--cool); }
+        .s-title .claim { margin-top: 36px; font-size: 44px; font-family: var(--font-accent); font-style: italic; color: var(--ink); }
+        .s-title .sub { margin-top: 22px; font-size: 28px; color: var(--ink-soft); line-height: 1.45; }
+        .s-title .team { position: absolute; left: var(--pad); bottom: 110px; font-size: 24px; color: var(--ink-soft); line-height: 1.6; }
+        .s-title .team b { color: var(--ink); font-weight: 600; }
+        .s-title .mill { position: absolute; right: 130px; top: 110px; width: 620px; height: 900px; }
+        .sun-disc { position: absolute; right: 220px; top: 150px; width: 440px; height: 440px; border-radius: 50%; background: radial-gradient(circle, rgba(240,162,26,0.35), rgba(240,162,26,0) 70%); }
+
+        /* ===========================================
+           FOLIE 2 — GROSSE ZAHL (dunkel)
+           =========================================== */
+        .s-stat .inner { position: absolute; left: var(--pad); right: var(--pad); top: 230px; }
+        .s-stat .big { font-size: 360px; color: var(--sun); line-height: 0.85; }
+        .s-stat .big small { font-size: 130px; color: var(--paper); }
+        .s-stat h2 { font-size: 80px; margin-top: 30px; }
+        .s-stat .row { display: flex; gap: 90px; margin-top: 70px; }
+        .s-stat .row div { font-size: 30px; color: rgba(244,239,228,0.8); }
+        .s-stat .row b { display: block; font-family: var(--font-display); font-size: 64px; color: var(--paper); }
+
+        /* ===========================================
+           FOLIE 3 / 8 — DREI KENNZAHLEN
+           =========================================== */
+        .tri { position: absolute; left: var(--pad); right: var(--pad); top: 480px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 60px; }
+        .tri .k { border-top: 6px solid var(--ink); padding-top: 34px; }
+        .tri .k.hot { border-color: var(--chili); }
+        .tri .k .n { font-family: var(--font-display); font-weight: 800; font-size: 120px; letter-spacing: -0.03em; line-height: 1; }
+        .tri .k.hot .n { color: var(--chili); }
+        .tri .k p { font-size: 32px; line-height: 1.35; margin-top: 18px; color: var(--ink-soft); }
+
+        /* ===========================================
+           FOLIE 4 — DIE IDEE: AGRI & MED
+           =========================================== */
+        .duo { position: absolute; left: var(--pad); right: var(--pad); top: 520px; display: grid; grid-template-columns: 1fr 1fr; gap: 50px; }
+        .mod { border-radius: 36px; padding: 56px 60px; display: flex; gap: 44px; align-items: center; }
+        .mod.agri { background: #dfe8cf; }
+        .mod.med { background: var(--cool-soft); }
+        .mod .ico { flex: 0 0 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; background: var(--paper); }
+        .mod .tag { font-size: 22px; font-weight: 700; letter-spacing: 0.18em; color: var(--leaf); }
+        .mod.med .tag { color: var(--cool); }
+        .mod h3 { font-size: 46px; margin: 8px 0 12px; }
+        .mod p { font-size: 30px; color: var(--ink-soft); line-height: 1.35; }
+
+        /* ===========================================
+           FOLIE 5 — SO FUNKTIONIERT'S (Energiefluss)
+           =========================================== */
+        .flow { position: absolute; left: var(--pad); right: var(--pad); top: 470px; display: grid; grid-template-columns: 1fr 70px 1fr 70px 1fr 70px 1fr; align-items: start; }
+        .node { text-align: center; }
+        .node .disc { width: 220px; height: 220px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: var(--paper-2); }
+        .node h3 { margin-top: 30px; font-size: 40px; }
+        .node p { margin-top: 10px; font-size: 26px; color: var(--ink-soft); }
+        .op { font-family: var(--font-display); font-size: 80px; font-weight: 700; color: var(--ink-soft); text-align: center; padding-top: 60px; }
+        .node.cool .disc { background: var(--ink); }
+        .note-strip { position: absolute; left: var(--pad); right: var(--pad); bottom: 120px; font-size: 28px; color: var(--ink-soft); border-left: 6px solid var(--sun); padding-left: 28px; }
+        .note-strip b { color: var(--ink); }
+
+        /* ===========================================
+           FOLIE 6 — FORSCHUNGSFRAGE & HYPOTHESE
+           =========================================== */
+        .qa { position: absolute; left: var(--pad); right: var(--pad); top: 260px; display: grid; grid-template-rows: auto auto; gap: 70px; }
+        .qa .lbl { font-family: var(--font-display); font-weight: 800; font-size: 34px; color: var(--cool); margin-bottom: 18px; }
+        .qa .q { font-family: var(--font-accent); font-style: italic; font-size: 66px; line-height: 1.15; }
+        .qa .h { font-size: 44px; line-height: 1.3; font-weight: 500; }
+        .qa .h mark { background: linear-gradient(transparent 58%, rgba(240,162,26,0.55) 58%); color: inherit; padding: 0 4px; }
+
+        /* ===========================================
+           FOLIE 7 — METHODIK (5 Schritte)
+           =========================================== */
+        .steps { position: absolute; left: var(--pad); right: var(--pad); top: 500px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 28px; }
+        .step { background: var(--paper-2); border-radius: 28px; padding: 40px 34px; height: 330px; }
+        .step .no { font-family: var(--font-display); font-weight: 800; font-size: 70px; color: var(--cool); line-height: 1; }
+        .step h3 { font-size: 36px; margin: 26px 0 12px; }
+        .step p { font-size: 24px; line-height: 1.35; color: var(--ink-soft); }
+        .step.last { background: var(--ink); color: var(--paper); }
+        .step.last p { color: rgba(244,239,228,0.75); }
+        .step.last .no { color: var(--sun); }
+
+        /* ===========================================
+           FOLIE 8 — KLEINWINDMARKT (Balkenvergleich)
+           =========================================== */
+        .bars { position: absolute; left: var(--pad); top: 470px; width: 1660px; }
+        .bar-row { display: grid; grid-template-columns: 230px 1fr; align-items: center; margin-bottom: 44px; }
+        .bar-row .lb { font-family: var(--font-display); font-weight: 700; font-size: 42px; }
+        .bar-row .track { display: flex; align-items: center; gap: 26px; }
+        .bar-row .fill { height: 84px; border-radius: 0 14px 14px 0; background: var(--ink-soft); }
+        .bar-row.in .fill { background: var(--chili); min-width: 12px; }
+        .bar-row .val { font-family: var(--font-display); font-weight: 700; font-size: 40px; white-space: nowrap; }
+        .bar-row.in .val { color: var(--chili); }
+
+        /* ===========================================
+           FOLIE 9 — MARKTPOTENZIAL (Trichter, log. Skala)
+           =========================================== */
+        .funnel { position: absolute; left: var(--pad); top: 400px; width: 1660px; }
+        .f-row { display: grid; grid-template-columns: 440px 1fr; align-items: center; margin-bottom: 34px; }
+        .f-row .lb b { display: block; font-family: var(--font-display); font-size: 40px; }
+        .f-row .lb span { font-size: 24px; color: var(--ink-soft); }
+        .f-row .track { display: flex; align-items: center; gap: 28px; }
+        .f-row .fill { height: 96px; border-radius: 16px; background: var(--cool); opacity: 0.35; }
+        .f-row:nth-child(2) .fill { opacity: 0.55; }
+        .f-row:nth-child(3) .fill { opacity: 0.8; }
+        .f-row.hl .fill { opacity: 1; background: var(--ink); }
+        .f-row .val { font-family: var(--font-display); font-weight: 800; font-size: 50px; white-space: nowrap; }
+        .f-row.hl .val { color: var(--chili); }
+        .f-row .val small { font-size: 26px; font-weight: 600; color: var(--ink-soft); margin-left: 10px; }
+
+        /* ===========================================
+           FOLIE 10 — WETTBEWERB (Positionierungsmatrix)
+           =========================================== */
+        .s-comp .left { position: absolute; left: var(--pad); top: 180px; width: 620px; }
+        .s-comp .left p.lead { margin-top: 40px; font-size: 32px; }
+        .s-comp .left .fact { margin-top: 50px; padding: 34px 38px; border-radius: 26px; background: var(--paper-2); font-size: 28px; line-height: 1.4; }
+        .s-comp .left .fact b { font-family: var(--font-display); font-size: 56px; display: block; color: var(--ink); }
+        .matrix { position: absolute; left: 900px; top: 150px; width: 890px; height: 800px; border-left: 4px solid var(--ink); border-bottom: 4px solid var(--ink); }
+        .matrix::before, .matrix::after { content: ""; position: absolute; background: rgba(20,33,61,0.15); }
+        .matrix::before { left: 50%; top: 0; bottom: 0; width: 2px; }
+        .matrix::after { top: 50%; left: 0; right: 0; height: 2px; }
+        .ax { position: absolute; font-size: 22px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
+        .ax.x { right: 0; bottom: -50px; }
+        .ax.y { left: -50px; top: 0; transform-origin: left top; transform: rotate(-90deg) translateX(-100%); white-space: nowrap; }
+        .pt { position: absolute; transform: translate(-50%, 50%); display: flex; align-items: center; gap: 14px; font-size: 24px; font-weight: 600; white-space: nowrap; }
+        .pt i { flex: 0 0 26px; height: 26px; border-radius: 50%; background: var(--ink-soft); }
+        .pt.sol i { background: var(--cool); }
+        .pt.me { font-family: var(--font-display); font-size: 30px; font-weight: 800; color: var(--chili); }
+        .pt.me i { flex-basis: 40px; height: 40px; border-radius: 6px; transform: rotate(45deg); background: var(--chili); box-shadow: 0 0 0 12px rgba(200,64,42,0.18); }
+        .pt.l { flex-direction: row-reverse; }
+
+        /* ===========================================
+           FOLIE 11 — PORTER (Bewertungsskala)
+           =========================================== */
+        .porter { position: absolute; left: var(--pad); right: var(--pad); top: 430px; }
+        .p-row { display: grid; grid-template-columns: 420px 360px 1fr; align-items: center; padding: 22px 0; border-bottom: 2px solid rgba(20,33,61,0.12); }
+        .p-row .lb { font-family: var(--font-display); font-weight: 700; font-size: 38px; }
+        .meter { display: flex; gap: 10px; }
+        .meter span { width: 100px; height: 22px; border-radius: 11px; background: rgba(20,33,61,0.12); }
+        .meter span.on { background: var(--ink); }
+        .meter.hot span.on { background: var(--chili); }
+        .meter span.half { background: linear-gradient(90deg, var(--ink) 50%, rgba(20,33,61,0.12) 50%); }
+        .p-row .why { font-size: 28px; color: var(--ink-soft); }
+        .p-row .why b { color: var(--ink); margin-right: 14px; }
+
+        /* ===========================================
+           FOLIE 12 — BEFRAGUNG
+           =========================================== */
+        .survey { position: absolute; left: var(--pad); right: var(--pad); top: 460px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 50px; }
+        .sv .dots { display: flex; gap: 16px; margin-bottom: 34px; }
+        .sv .dots i { width: 64px; height: 64px; border-radius: 50%; border: 4px solid var(--ink); }
+        .sv .dots i.on { background: var(--cool); border-color: var(--cool); }
+        .sv h3 { font-size: 46px; }
+        .sv p { margin-top: 14px; font-size: 28px; line-height: 1.4; color: var(--ink-soft); }
+
+        /* ===========================================
+           FOLIE 13 — SWOT
+           =========================================== */
+        .swot { position: absolute; left: var(--pad); right: var(--pad); top: 300px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+        .sw { border-radius: 30px; padding: 40px 50px; height: 330px; }
+        .sw h3 { font-size: 40px; margin-bottom: 18px; display: flex; align-items: baseline; gap: 18px; }
+        .sw h3 span { font-size: 70px; line-height: 0.8; }
+        .sw ul { list-style: none; font-size: 28px; line-height: 1.55; }
+        .sw li::before { content: "· "; font-weight: 800; }
+        .sw.s { background: #dfe8cf; } .sw.s h3 span { color: var(--leaf); }
+        .sw.w { background: var(--paper-2); } .sw.w h3 span { color: var(--ink-soft); }
+        .sw.o { background: var(--cool-soft); } .sw.o h3 span { color: var(--cool); }
+        .sw.t { background: #f3d6cc; } .sw.t h3 span { color: var(--chili); }
+
+        /* ===========================================
+           FOLIE 14 — STRATEGIE (Fahrplan)
+           =========================================== */
+        .road { position: absolute; left: var(--pad); right: var(--pad); top: 500px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 60px; }
+        .road::before { content: ""; position: absolute; left: 0; right: 0; top: 46px; height: 4px; background: repeating-linear-gradient(90deg, var(--ink) 0 18px, transparent 18px 32px); }
+        .rd .pin { position: relative; width: 96px; height: 96px; border-radius: 50%; background: var(--cool); color: var(--paper); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 40px; }
+        .rd.later .pin { background: var(--paper); color: var(--ink); border: 4px solid var(--ink); }
+        .rd .when { margin-top: 34px; font-size: 22px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--cool); }
+        .rd h3 { font-size: 50px; margin: 10px 0 14px; }
+        .rd p { font-size: 28px; line-height: 1.4; color: var(--ink-soft); }
+
+        /* ===========================================
+           FOLIE 15 — FAZIT (dunkel)
+           =========================================== */
+        .s-end .verdict { position: absolute; left: var(--pad); top: 190px; width: 1660px; }
+        .s-end .verdict h2 { font-size: 104px; }
+        .s-end .verdict h2 .acc { color: var(--sun); }
+        .s-end .next { position: absolute; left: var(--pad); right: var(--pad); top: 590px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 50px; }
+        .s-end .nx { border-top: 4px solid var(--sun); padding-top: 30px; }
+        .s-end .nx .no { font-family: var(--font-display); font-weight: 800; font-size: 26px; color: var(--sun); letter-spacing: 0.14em; }
+        .s-end .nx h3 { font-size: 46px; margin: 12px 0; }
+        .s-end .nx p { font-size: 27px; line-height: 1.4; color: rgba(244,239,228,0.75); }
+
+        /* ===========================================
+           FOLIE 16 — DANKE
+           =========================================== */
+        .s-thanks .inner { position: absolute; left: var(--pad); top: 300px; }
+        .s-thanks h1 { font-size: 230px; }
+        .s-thanks h1 .acc { color: var(--cool); }
+        .s-thanks .team { position: absolute; left: var(--pad); bottom: 110px; display: flex; gap: 60px; font-size: 26px; font-weight: 600; }
+        .s-thanks .mill { position: absolute; right: 170px; top: 140px; width: 520px; height: 760px; }
+
+        /* ===========================================
+           STEUERUNG AUSSERHALB DER BÜHNE
+           =========================================== */
+        .progress { position: fixed; left: 0; top: 0; height: 4px; background: var(--cool); z-index: 1000; transition: width 0.5s var(--ease); }
+        .deck-controls { font-family: 'Figtree', sans-serif; font-size: 12px; letter-spacing: 0.15em; color: rgba(244,239,228,0.5); }
+
+        /* ===========================================
+           INLINE-BEARBEITUNG (Taste E oder Ecke oben links)
+           =========================================== */
+        .edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
+        .edit-toggle { position: fixed; top: 18px; left: 18px; z-index: 10001; width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); font-size: 18px; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+        .edit-toggle.active { background: var(--cool); color: var(--paper); }
+        body.editing [contenteditable="true"] { outline: 2px dashed rgba(14,138,140,0.6); outline-offset: 6px; }
+    </style>
+</head>
+<body>
+    <div class="progress" id="progress"></div>
+    <div class="edit-hotzone"></div>
+    <button class="edit-toggle" id="editToggle" title="Bearbeiten (E)" aria-label="Bearbeitungsmodus umschalten">✎</button>
+
+    <!-- === WIEDERVERWENDBARE SVG-SYMBOLE === -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <!-- SAILWIND: Segelwindmühle nach historischem Vorbild -->
+            <symbol id="sailwind" viewBox="0 0 620 900">
+                <path d="M235 900 L265 430 L355 430 L385 900 Z" fill="#fbf8f1" stroke="#14213d" stroke-width="5"/>
+                <path d="M255 440 Q310 360 365 440 Z" fill="#c8402a" stroke="#14213d" stroke-width="5"/>
+                <rect x="292" y="640" width="36" height="60" rx="18" fill="#14213d"/>
+                <rect x="298" y="790" width="24" height="110" fill="#14213d" opacity="0.85"/>
+            </symbol>
+            <symbol id="rotor" viewBox="-280 -280 560 560">
+                <g stroke="#14213d" stroke-width="4" stroke-linejoin="round">
+                    <g id="spar"><line x1="0" y1="0" x2="0" y2="-265"/><path d="M0 -60 L0 -265 L70 -235 Z" fill="#fbf8f1"/></g>
+                    <use href="#spar" transform="rotate(45)"/><use href="#spar" transform="rotate(90)"/><use href="#spar" transform="rotate(135)"/>
+                    <use href="#spar" transform="rotate(180)"/><use href="#spar" transform="rotate(225)"/><use href="#spar" transform="rotate(270)"/><use href="#spar" transform="rotate(315)"/>
+                </g>
+                <circle r="26" fill="#14213d"/>
+            </symbol>
+        </defs>
+    </svg>
+
+    <div class="deck-viewport">
+        <main class="deck-stage" id="deckStage">
+
+            <!-- === FOLIE 1: TITEL ===
+                 Sprecher: Begrüßung, Team vorstellen, Thema in einem Satz. -->
+            <section class="slide s-title active" aria-label="Titel">
+                <div class="chrome"><span class="brand">HTWG Konstanz · Investitionsgütermarketing</span><span>Abschlusspräsentation</span></div>
+                <div class="sun-disc"></div>
+                <svg class="mill" viewBox="0 0 620 900" aria-hidden="true">
+                    <use href="#sailwind"/>
+                    <g transform="translate(310 430)"><g class="rotor"><use href="#rotor" x="-280" y="-280" width="560" height="560"/></g></g>
+                </svg>
+                <div class="inner">
+                    <div class="kicker reveal d1">Markt-, Potenzial- & Wettbewerbsanalyse</div>
+                    <h1 class="reveal d2">SAILCOOL<br><span class="v">VILLAGE</span></h1>
+                    <p class="claim reveal d3">Ein Energiesystem. Zwei Grundbedürfnisse.</p>
+                    <p class="sub reveal d4">Modulare, wind- und solarversorgte Kühlung<br>für das ländliche Indien</p>
+                </div>
+                <div class="team reveal d5"><b>Sven Feuerbacher · Patricia Walter · Felix Fleig · David Ammann · Ilias Ainous</b></div>
+            </section>
+
+            <!-- === FOLIE 2: DAS PROBLEM ===
+                 Sprecher: Indien = Nr. 2 weltweit bei Obst & Gemüse. Ein großer Teil verdirbt. -->
+            <section class="slide dark s-stat" aria-label="Problem">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Das Problem</span></div>
+                <div class="inner">
+                    <div class="big reveal d1"><span class="count" data-to="5.7" data-dec="1">0</span><small> Mrd. €</small></div>
+                    <h2 class="reveal d2">verderben jedes Jahr <span class="acc">nach der Ernte.</span></h2>
+                    <div class="row reveal d3">
+                        <div><b>bis 15 %</b>des Obsts geht verloren</div>
+                        <div><b>bis 12 %</b>des Gemüses geht verloren</div>
+                    </div>
+                </div>
+                <div class="src">Quellen: Lok Sabha (2024), Rajya Sabha (2023)</div>
+                <div class="pageno">02</div>
+            </section>
+
+            <!-- === FOLIE 3: WARUM DIE KÜHLUNG FEHLT ===
+                 Sprecher: Kein absoluter Kapazitätsmangel – sondern falsch verteilt, und Strom unzuverlässig. -->
+            <section class="slide" aria-label="Ursachen">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Das Problem</span></div>
+                <div class="title-top">
+                    <div class="kicker reveal d1">Die Ursache</div>
+                    <h2 class="reveal d2">Kühlung gibt es – <span class="acc">nur nicht dort,<br>wo geerntet wird.</span></h2>
+                </div>
+                <div class="tri">
+                    <div class="k reveal d3"><div class="n">8.815</div><p>Kühlhäuser mit 40 Mio. t Kapazität</p></div>
+                    <div class="k hot reveal d4"><div class="n">¾</div><p>davon für Kartoffeln – über die Hälfte in nur zwei Bundesstaaten</p></div>
+                    <div class="k hot reveal d5"><div class="n">&lt; 20 h</div><p>Strom pro Tag in mehreren ländlichen Bundesstaaten</p></div>
+                </div>
+                <div class="src">Quellen: IANS (2026), Rajya Sabha (2025)</div>
+                <div class="pageno">03</div>
+            </section>
+
+            <!-- === FOLIE 4: DIE IDEE ===
+                 Sprecher: Ein Energiesystem versorgt zwei Module. -->
+            <section class="slide" aria-label="Idee">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Die Idee</span></div>
+                <div class="title-top">
+                    <div class="kicker reveal d1">Unser Konzept</div>
+                    <h2 class="reveal d2">Ein Energiesystem.<br><span class="acc">Zwei Grundbedürfnisse.</span></h2>
+                </div>
+                <div class="duo">
+                    <div class="mod agri reveal d3">
+                        <div class="ico"><svg width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="#4f7d3a" stroke-width="1.8" stroke-linecap="round"><path d="M5 19c0-8 6-14 14-14 0 8-6 14-14 14z"/><path d="M5 19l8-8"/></svg></div>
+                        <div><div class="tag">MODUL AGRI</div><h3>Obst & Gemüse</h3><p>Weniger Verluste, besserer Preis für Kleinbauern</p></div>
+                    </div>
+                    <div class="mod med reveal d4">
+                        <div class="ico"><svg width="90" height="90" viewBox="0 0 24 24" fill="none" stroke="#0e8a8c" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M12 8v8M8 12h8"/></svg></div>
+                        <div><div class="tag">MODUL MED</div><h3>Impfstoffe & Medizin</h3><p>Sichere Kühlung 2–10 °C in entlegenen Orten</p></div>
+                    </div>
+                </div>
+                <div class="pageno">04</div>
+            </section>
+
+            <!-- === FOLIE 5: SO FUNKTIONIERT'S ===
+                 Sprecher: Wind ergänzt PV vor allem nachts und im Monsun. SAILWIND kommt aus der HTWG. -->
+            <section class="slide" aria-label="Funktionsweise">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Die Idee</span></div>
+                <div class="title-top">
+                    <div class="kicker reveal d1">So funktioniert's</div>
+                    <h2 class="reveal d2">Wind + Sonne <span class="acc">→ Kälte</span></h2>
+                </div>
+                <div class="flow">
+                    <div class="node reveal d2">
+                        <div class="disc"><svg width="170" height="170" viewBox="-280 -280 560 560"><g class="rotor"><use href="#rotor" x="-280" y="-280" width="560" height="560"/></g></svg></div>
+                        <h3>SAILWIND</h3><p>Segelwindmühle</p>
+                    </div>
+                    <div class="op reveal d3">+</div>
+                    <div class="node reveal d3">
+                        <div class="disc"><svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#f0a21a" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg></div>
+                        <h3>Photovoltaik</h3><p>Solarstrom am Tag</p>
+                    </div>
+                    <div class="op reveal d4">→</div>
+                    <div class="node reveal d4">
+                        <div class="disc"><svg width="110" height="110" viewBox="0 0 24 24" fill="none" stroke="#14213d" stroke-width="1.8" stroke-linejoin="round"><rect x="5" y="5" width="14" height="16" rx="2"/><path d="M9 3h6M13 9l-3 4h4l-3 4"/></svg></div>
+                        <h3>Speicher</h3><p>Batterie & Energiemanagement</p>
+                    </div>
+                    <div class="op reveal d5">→</div>
+                    <div class="node cool reveal d5">
+                        <div class="disc"><svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#cfe7e4" stroke-width="1.8" stroke-linecap="round"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/></svg></div>
+                        <h3>Kühlung</h3><p>AGRI & MED</p>
+                    </div>
+                </div>
+                <div class="note-strip reveal d6"><b>SAILWIND</b> wird an der HTWG Konstanz entwickelt – eine automatisierte Segelwindmühle nach historischem Vorbild.</div>
+                <div class="pageno">05</div>
+            </section>
+
+            <!-- === FOLIE 6: FORSCHUNGSFRAGE & HYPOTHESE ===
+                 Sprecher: Wir haben bewusst kritisch gefragt – lohnt sich der Wind überhaupt? -->
+            <section class="slide" aria-label="Forschungsfrage">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Fragestellung</span></div>
+                <div class="qa">
+                    <div class="reveal d1">
+                        <div class="lbl">Forschungsfrage</div>
+                        <div class="q">Unter welchen Markt- und Wettbewerbs­bedingungen kann SAILCOOL VILLAGE eine tragfähige Marktnische besetzen?</div>
+                    </div>
+                    <div class="reveal d3">
+                        <div class="lbl">Hypothese</div>
+                        <div class="h">Wind bringt <mark>keinen flächendeckenden Vorteil</mark> gegenüber reiner Photovoltaik – nur dort, wo <mark>genug Wind</mark> und ein <mark>unzuverlässiges Netz</mark> zusammentreffen.</div>
+                    </div>
+                </div>
+                <div class="pageno">06</div>
+            </section>
+
+            <!-- === FOLIE 7: METHODIK ===
+                 Sprecher: Kurz halten – fünf Schritte, Befragung ist explorativ (n = 4). -->
+            <section class="slide" aria-label="Methodik">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Vorgehen</span></div>
+                <div class="title-top">
+                    <div class="kicker reveal d1">Methodik</div>
+                    <h2 class="reveal d2">In fünf Schritten <span class="acc">zur Antwort</span></h2>
+                </div>
+                <div class="steps">
+                    <div class="step reveal d2"><div class="no">1</div><h3>Desk Research</h3><p>Statistiken, Studien, Anbieterdaten</p></div>
+                    <div class="step reveal d3"><div class="no">2</div><h3>Marktanalyse</h3><p>Stufenweise Potenzial­abschätzung</p></div>
+                    <div class="step reveal d4"><div class="no">3</div><h3>Wettbewerb</h3><p>Profile, Matrix, Porters Five Forces</p></div>
+                    <div class="step reveal d5"><div class="no">4</div><h3>Befragung</h3><p>4 indische Studierende, explorativ</p></div>
+                    <div class="step last reveal d6"><div class="no">5</div><h3>Synthese</h3><p>SWOT, Zielgruppe, Positionierung</p></div>
+                </div>
+                <div class="pageno">07</div>
+            </section>
+
+            <!-- === FOLIE 8: KLEINWINDMARKT ===
+                 Sprecher: Kleinwind ist in Indien praktisch nicht existent – Förderung 2017 ausgelaufen, PV günstiger. -->
+            <section class="slide" aria-label="Kleinwindmarkt">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Ergebnisse · Markt</span></div>
+                <div class="title-top">
+                    <div class="kicker reveal d1">Kleinwind in Indien</div>
+                    <h2 class="reveal d2">Ein Markt, <span class="acc">den es kaum gibt.</span></h2>
+                </div>
+                <div class="bars">
+                    <div class="bar-row reveal d2"><div class="lb">China</div><div class="track"><div class="fill grow" style="width:1100px"></div><div class="val">704 MW</div></div></div>
+                    <div class="bar-row reveal d3"><div class="lb">USA</div><div class="track"><div class="fill grow" style="width:244px"></div><div class="val">156 MW</div></div></div>
+                    <div class="bar-row in reveal d4"><div class="lb">Indien</div><div class="track"><div class="fill grow" style="width:8px"></div><div class="val">3–5 MW</div></div></div>
+                </div>
+                <div class="note-strip reveal d5" style="border-color: var(--chili)">1 kW Kleinwind ab <b>80.000 INR</b> – 1 kW Photovoltaik nur <b>40.000–70.000 INR</b></div>
+                <div class="src" style="bottom:56px; left:auto; right:280px">Quellen: WRI India (2024), CSTEP (2023)</div>
+                <div class="pageno">08</div>
+            </section>
+
+            <!-- === FOLIE 9: MARKTPOTENZIAL ===
+                 Sprecher: Von der Obergrenze runter auf das, was wir realistisch erreichen. Log. Skala! -->
+            <section class="slide" aria-label="Marktpotenzial">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Ergebnisse · Potenzial</span></div>
+                <div class="title-top" style="top:160px">
+                    <div class="kicker reveal d1">Marktpotenzial</div>
+                    <h2 class="reveal d2">Von 25 Mrd. € <span class="acc">auf 5 Mio. €</span></h2>
+                </div>
+                <div class="funnel">
+                    <div class="f-row reveal d2"><div class="lb"><b>A · Theoretisch</b><span>gesamte Kapazitätslücke</span></div><div class="track"><div class="fill grow" style="width:880px"></div><div class="val">24,9 Mrd. €</div></div></div>
+                    <div class="f-row reveal d3"><div class="lb"><b>B · Dezentral</b><span>10 % an der ersten Meile</span></div><div class="track"><div class="fill grow" style="width:680px"></div><div class="val">2,5 Mrd. €</div></div></div>
+                    <div class="f-row reveal d4"><div class="lb"><b>C · Windgeeignet</b><span>20 % davon</span></div><div class="track"><div class="fill grow" style="width:540px"></div><div class="val">0,5 Mrd. €</div></div></div>
+                    <div class="f-row hl reveal d5"><div class="lb"><b>D · Absatz</b><span>1 % in 10 Jahren</span></div><div class="track"><div class="fill grow" style="width:140px"></div><div class="val">5 Mio. € <small>≈ 30 Anlagen / Jahr</small></div></div></div>
+                </div>
+                <div class="src">Logarithmische Darstellung · eigene Berechnung, Kurs 100 INR/€</div>
+                <div class="pageno">09</div>
+            </section>
+
+            <!-- === FOLIE 10: WETTBEWERB ===
+                 Sprecher: Solare Kühlräume sind schon da und gut. Unser Unterschied ist nur graduell: Strom auch nachts/Monsun. -->
+            <section class="slide s-comp" aria-label="Wettbewerb">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Ergebnisse · Wettbewerb</span></div>
+                <div class="left">
+                    <div class="kicker reveal d1">Wettbewerb</div>
+                    <h2 class="reveal d2" style="font-size:80px">Solar ist<br><span class="acc">schon da.</span></h2>
+                    <p class="lead reveal d3">Unser Vorsprung ist nur graduell: Strom auch nachts und im Monsun.</p>
+                    <div class="fact reveal d4"><b>&gt; 1.200</b>Ecofrost-Kühlräume hat Marktführer Ecozen bereits installiert</div>
+                </div>
+                <div class="matrix reveal d3">
+                    <div class="ax x">Dezentralität →</div>
+                    <div class="ax y">Energieautonomie →</div>
+                    <div class="pt me l" style="left:76%; bottom:92%"><i></i>SAILCOOL AGRI</div>
+                    <div class="pt sol l" style="left:53%; bottom:78%"><i></i>Inficold</div>
+                    <div class="pt sol" style="left:76%; bottom:67%"><i></i>Ecofrost</div>
+                    <div class="pt sol" style="left:70%; bottom:52%"><i></i>CoolCrop</div>
+                    <div class="pt" style="left:42%; bottom:32%"><i></i>Diesel-/Netz-Kühlraum</div>
+                    <div class="pt" style="left:10%; bottom:22%"><i></i>Große Kühlhäuser</div>
+                    <div class="pt l" style="left:86%; bottom:9%"><i></i>Verdunstungskühlung</div>
+                </div>
+                <div class="pageno">10</div>
+            </section>
+
+            <!-- === FOLIE 11: PORTER ===
+                 Sprecher: Größte Gefahr – preissensible Kunden und günstige Ersatzlösungen. -->
+            <section class="slide" aria-label="Porter">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Ergebnisse · Wettbewerb</span></div>
+                <div class="title-top">
+                    <div class="kicker reveal d1">Five Forces nach Porter</div>
+                    <h2 class="reveal d2">Wettbewerbsintensität: <span class="acc">mittel bis hoch</span></h2>
+                </div>
+                <div class="porter">
+                    <div class="p-row reveal d2"><div class="lb">Abnehmermacht</div><div class="meter hot"><span class="on"></span><span class="on"></span><span class="on"></span></div><div class="why"><b>hoch</b>preissensibel, abhängig von Förderung</div></div>
+                    <div class="p-row reveal d3"><div class="lb">Substitute</div><div class="meter hot"><span class="on"></span><span class="on"></span><span class="on"></span></div><div class="why"><b>hoch</b>Verdunstungskühlung, Sofortverkauf</div></div>
+                    <div class="p-row reveal d4"><div class="lb">Rivalität</div><div class="meter"><span class="on"></span><span class="on"></span><span></span></div><div class="why"><b>mittel</b>wenige Anbieter mit Referenzen</div></div>
+                    <div class="p-row reveal d5"><div class="lb">Neue Anbieter</div><div class="meter"><span class="on"></span><span class="on"></span><span></span></div><div class="why"><b>mittel</b>Hürde: Service & Förderfähigkeit</div></div>
+                    <div class="p-row reveal d6"><div class="lb">Lieferantenmacht</div><div class="meter"><span class="on"></span><span class="half"></span><span></span></div><div class="why"><b>gering–mittel</b>Komponenten standardisiert</div></div>
+                </div>
+                <div class="pageno">11</div>
+            </section>
+
+            <!-- === FOLIE 12: BEFRAGUNG ===
+                 Sprecher: Nur 4 Personen, keine Validierung – aber klare Hinweise. -->
+            <section class="slide" aria-label="Befragung">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Ergebnisse · Befragung</span></div>
+                <div class="title-top">
+                    <div class="kicker reveal d1">Explorative Befragung · n = 4</div>
+                    <h2 class="reveal d2">Was sagen <span class="acc">indische Studierende?</span></h2>
+                </div>
+                <div class="survey">
+                    <div class="sv reveal d3"><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div><h3>Strom unzuverlässig</h3><p>auf dem Land – bei Ausfall läuft meist der Diesel­generator</p></div>
+                    <div class="sv reveal d4"><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div><h3>Obst & Gemüse</h3><p>profitieren am meisten von Kühlung, z. B. saisonales Obst</p></div>
+                    <div class="sv reveal d5"><div class="dots"><i class="on"></i><i class="on"></i><i class="on"></i><i></i></div><h3>Würden mehr zahlen</h3><p>für nachhaltige Energie – aber der Nutzen muss zählen</p></div>
+                </div>
+                <div class="src">Kleine, nicht repräsentative Stichprobe – nur zur Plausibilisierung</div>
+                <div class="pageno">12</div>
+            </section>
+
+            <!-- === FOLIE 13: SWOT === -->
+            <section class="slide" aria-label="SWOT">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Synthese</span></div>
+                <div class="title-top" style="top:140px"><h2 class="reveal d1" style="font-size:80px">SWOT <span class="acc">auf einen Blick</span></h2></div>
+                <div class="swot">
+                    <div class="sw s reveal d2"><h3><span>S</span>Stärken</h3><ul><li>Hybrid: Wind + PV + Speicher</li><li>Modular: AGRI, MED, Größe</li><li>Sichtbare, robuste Segeltechnik</li></ul></div>
+                    <div class="sw w reveal d3"><h3><span>W</span>Schwächen</h3><ul><li>Machbarkeit noch nicht nachgewiesen</li><li>Wind teurer je kW als PV</li><li>Keine Referenzen, kein Service</li></ul></div>
+                    <div class="sw o reveal d4"><h3><span>O</span>Chancen</h3><ul><li>Hohe Verluste, wachsender Markt</li><li>35–50 % staatliche Förderung</li><li>Erzeugerorganisationen als Betreiber</li></ul></div>
+                    <div class="sw t reveal d5"><h3><span>T</span>Risiken</h3><ul><li>Etablierte Solar-Wettbewerber</li><li>Preissensible Kunden</li><li>Strenge Zulassung für MED</li></ul></div>
+                </div>
+                <div class="pageno">13</div>
+            </section>
+
+            <!-- === FOLIE 14: STRATEGIE ===
+                 Sprecher: Fokus statt Gießkanne. Cooling-as-a-Service umgeht hohe Anfangsinvestition. -->
+            <section class="slide" aria-label="Strategie">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>Markteintritt</span></div>
+                <div class="title-top">
+                    <div class="kicker reveal d1">Empfehlung</div>
+                    <h2 class="reveal d2">Fokussiert <span class="acc">starten.</span></h2>
+                </div>
+                <div class="road">
+                    <div class="rd reveal d3"><div class="pin">1</div><div class="when">Zielgruppe</div><h3>Erzeuger­organisationen</h3><p>bündeln Mengen, sind förderfähig, regeln den Zugang</p></div>
+                    <div class="rd reveal d4"><div class="pin">2</div><div class="when">Geschäftsmodell</div><h3>Cooling as a Service</h3><p>Nutzungsgebühr statt hoher Anschaffung für Bauern</p></div>
+                    <div class="rd later reveal d5"><div class="pin">3</div><div class="when">Später</div><h3>Modul MED</h3><p>erst nach Feldtest von AGRI und geklärter Zulassung</p></div>
+                </div>
+                <div class="pageno">14</div>
+            </section>
+
+            <!-- === FOLIE 15: FAZIT ===
+                 Sprecher: Hypothese gestützt + präzisiert (wenig Sonne/Monsun). Ohne Energiebilanz aber nicht bestätigt. -->
+            <section class="slide dark s-end" aria-label="Fazit">
+                <div class="chrome"><span class="brand">SAILCOOL VILLAGE</span><span>Fazit & Ausblick</span></div>
+                <div class="verdict">
+                    <div class="kicker reveal d1" style="color:var(--sun)">Fazit</div>
+                    <h2 class="reveal d2" style="margin-top:20px">Eine Nische – <span class="acc">kein Massenmarkt.</span></h2>
+                    <p class="lead reveal d3" style="margin-top:34px">Hypothese gestützt, aber noch nicht bestätigt: Wind lohnt sich bei viel Wind, schwachem Netz und wenig Sonne.</p>
+                </div>
+                <div class="next">
+                    <div class="nx reveal d4"><div class="no">NÄCHSTER SCHRITT 1</div><h3>Standortanalyse</h3><p>Wind- und Solardaten: Wo treffen alle Bedingungen zusammen?</p></div>
+                    <div class="nx reveal d5"><div class="no">NÄCHSTER SCHRITT 2</div><h3>Energiebilanz</h3><p>5-t-Modul: Wind + PV + Batterie gegen reine PV rechnen</p></div>
+                    <div class="nx reveal d6"><div class="no">NÄCHSTER SCHRITT 3</div><h3>Vor Ort fragen</h3><p>Gespräche mit Landwirten und Erzeuger­organisationen</p></div>
+                </div>
+                <div class="pageno">15</div>
+            </section>
+
+            <!-- === FOLIE 16: DANKE === -->
+            <section class="slide s-thanks" aria-label="Danke">
+                <div class="chrome"><span class="brand">SAILCOOL <i>VILLAGE</i></span><span>HTWG Konstanz</span></div>
+                <svg class="mill" viewBox="0 0 620 900" aria-hidden="true">
+                    <use href="#sailwind"/>
+                    <g transform="translate(310 430)"><g class="rotor"><use href="#rotor" x="-280" y="-280" width="560" height="560"/></g></g>
+                </svg>
+                <div class="inner">
+                    <h1 class="reveal d1">Danke<span class="acc">!</span></h1>
+                    <p class="lead reveal d2" style="margin-top:30px; font-size:44px">Wir freuen uns auf eure Fragen.</p>
+                </div>
+                <div class="team reveal d3"><span>Sven Feuerbacher</span><span>Patricia Walter</span><span>Felix Fleig</span><span>David Ammann</span><span>Ilias Ainous</span></div>
+            </section>
+
+        </main>
+    </div>
+
+    <div class="deck-controls" id="pageNum">1 / 16</div>
+
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           Skalierung, Tastatur, Touch, Mausrad, Fortschritt
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.stage = document.getElementById('deckStage');
+                this.current = 0;
+                this.wheelLock = false;
+                this.setupStageScale();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupWheelNav();
+                const start = parseInt(location.hash.slice(1), 10);
+                this.showSlide(isNaN(start) ? 0 : start - 1);
+            }
+
+            /* Gesamte 1920×1080-Bühne gleichmäßig ins Fenster einpassen */
+            setupStageScale() {
+                const scale = () => {
+                    const f = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+                    const x = (window.innerWidth - 1920 * f) / 2;
+                    const y = (window.innerHeight - 1080 * f) / 2;
+                    this.stage.style.transform = `translate(${x}px, ${y}px) scale(${f})`;
+                };
+                scale();
+                window.addEventListener('resize', scale);
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    if (document.body.classList.contains('editing')) return;
+                    if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); this.showSlide(this.current + 1); }
+                    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); this.showSlide(this.current - 1); }
+                    if (e.key === 'Home') this.showSlide(0);
+                    if (e.key === 'End') this.showSlide(this.slides.length - 1);
+                });
+            }
+
+            setupTouchNav() {
+                let startX = 0;
+                document.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+                document.addEventListener('touchend', (e) => {
+                    const dx = e.changedTouches[0].clientX - startX;
+                    if (Math.abs(dx) > 50) this.showSlide(this.current + (dx < 0 ? 1 : -1));
+                });
+            }
+
+            setupWheelNav() {
+                document.addEventListener('wheel', (e) => {
+                    if (this.wheelLock || Math.abs(e.deltaY) < 20) return;
+                    this.wheelLock = true;
+                    this.showSlide(this.current + (e.deltaY > 0 ? 1 : -1));
+                    setTimeout(() => (this.wheelLock = false), 800);
+                }, { passive: true });
+            }
+
+            showSlide(i) {
+                this.current = Math.max(0, Math.min(i, this.slides.length - 1));
+                this.slides.forEach((s, n) => {
+                    s.classList.toggle('active', n === this.current);
+                    s.classList.toggle('visible', n === this.current);
+                });
+                document.getElementById('progress').style.width = ((this.current + 1) / this.slides.length * 100) + '%';
+                document.getElementById('pageNum').textContent = `${this.current + 1} / ${this.slides.length}`;
+                history.replaceState(null, '', '#' + (this.current + 1));
+                this.runCounters(this.slides[this.current]);
+            }
+
+            /* Zähl-Animation für .count (data-to, data-dec = Nachkommastellen) */
+            runCounters(slide) {
+                slide.querySelectorAll('.count').forEach((el) => {
+                    const to = parseFloat(el.dataset.to); const dec = parseInt(el.dataset.dec || '0', 10);
+                    const start = performance.now();
+                    const tick = (t) => {
+                        const p = Math.min((t - start) / 1400, 1);
+                        el.textContent = (to * (1 - Math.pow(1 - p, 3))).toFixed(dec).replace('.', ',');
+                        if (p < 1) requestAnimationFrame(tick);
+                    };
+                    requestAnimationFrame(tick);
+                });
+            }
+        }
+
+        /* ===========================================
+           INLINE-EDITOR
+           E = an/aus, Strg+S = HTML speichern, Autosave lokal
+           =========================================== */
+        class InlineEditor {
+            constructor() {
+                this.isActive = false;
+                this.key = 'deck-edits-' + location.pathname;
+                this.targets = document.querySelectorAll('.slide h1, .slide h2, .slide h3, .slide p, .slide li, .slide .kicker, .slide .q, .slide .h, .slide .lbl, .slide .n, .slide .val, .slide .lb, .slide .why, .slide .team, .slide .src');
+                this.restore();
+            }
+            toggleEditMode() {
+                this.isActive = !this.isActive;
+                document.body.classList.toggle('editing', this.isActive);
+                document.getElementById('editToggle').classList.toggle('active', this.isActive);
+                this.targets.forEach((el) => el.setAttribute('contenteditable', this.isActive ? 'true' : 'false'));
+                if (!this.isActive) this.save();
+            }
+            save() {
+                try { localStorage.setItem(this.key, JSON.stringify([...this.targets].map((el) => el.innerHTML))); } catch (e) {}
+            }
+            restore() {
+                try {
+                    const data = JSON.parse(localStorage.getItem(this.key) || 'null');
+                    if (data && data.length === this.targets.length) this.targets.forEach((el, i) => (el.innerHTML = data[i]));
+                } catch (e) {}
+            }
+            download() {
+                const clone = document.documentElement.cloneNode(true);
+                clone.querySelectorAll('[contenteditable]').forEach((el) => el.removeAttribute('contenteditable'));
+                clone.querySelector('body').classList.remove('editing');
+                const blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], { type: 'text/html' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob); a.download = 'sailcool-praesentation.html'; a.click();
+            }
+        }
+
+        const deck = new SlidePresentation();
+        const editor = new InlineEditor();
+
+        // Bearbeiten-Button: Klick, Hover mit 400 ms Verzögerung, Taste E
+        const hotzone = document.querySelector('.edit-hotzone');
+        const editToggle = document.getElementById('editToggle');
+        let hideTimeout = null;
+        const hideLater = () => { hideTimeout = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove('show'); }, 400); };
+        editToggle.addEventListener('click', () => editor.toggleEditMode());
+        hotzone.addEventListener('click', () => editor.toggleEditMode());
+        hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); editToggle.classList.add('show'); });
+        hotzone.addEventListener('mouseleave', hideLater);
+        editToggle.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+        editToggle.addEventListener('mouseleave', hideLater);
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'e' || e.key === 'E') && e.target.getAttribute('contenteditable') !== 'true') editor.toggleEditMode();
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); editor.save(); editor.download(); }
+        });
+    </script>
+</body>
+</html>
