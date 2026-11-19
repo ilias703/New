@@ -531,10 +531,22 @@
         .dn-stat .state.bad { color: var(--alarm) !important; }
         .gauge { color: var(--ink); }
 
+
+        /* ===========================================
+           NATUR: grüne Hügel am unteren Rand jeder Folie (Mossy green)
+           =========================================== */
+        .slide::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 110px; z-index: 0; pointer-events: none;
+            background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1920 110' preserveAspectRatio='none'%3E%3Cpath d='M0 62 C 220 20, 420 30, 640 52 S 1060 18, 1300 44 S 1700 22, 1920 40 V110 H0Z' fill='%236b8440'/%3E%3Cpath d='M0 84 C 260 52, 520 60, 780 78 S 1240 50, 1500 70 S 1800 60, 1920 66 V110 H0Z' fill='%23556b2f'/%3E%3C/svg%3E") bottom / 100% 110px no-repeat; }
+        .foot { color: #e6eddc !important; }
+
+        /* Grüne Karten: weiße Schrift auf Moosgrün (5.3:1) */
+        .card.green { background: var(--green);
+            --ink: #f2f2ee; --ink-soft: #eef2e6; --ink-mute: #dfe6d2; --ink-faint: #c9d3b8; --line: rgba(242,242,238,0.3); --coral: #f2f2ee; }
+
         /* ===========================================
            STEUERUNG + EDITOR (außerhalb der Bühne)
            =========================================== */
-        .progress { position: fixed; left: 0; top: 0; height: 3px; background: var(--coral); z-index: 1000; transition: width 0.25s ease; }
+        .progress { position: fixed; left: 0; top: 0; height: 4px; background: #6b8440; z-index: 1000; transition: width 0.25s ease; }
         .deck-controls { display: none; }
         .edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
         .edit-toggle { position: fixed; top: 18px; left: 18px; z-index: 10001; width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(21,20,15,0.2); background: var(--bone); color: var(--ink); font-size: 18px; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; }
@@ -612,7 +624,7 @@
                     <div class="h2 rv d2">Ein Energiesystem.<br>Zwei <span class="it">Bedürfnisse</span><span class="dot">.</span></div>
                 </div>
                 <div class="mods">
-                    <div class="card rv d3"><div class="row1"><span class="tag">Modul AGRI</span></div><h3>Obst & <span class="it">Gemüse</span></h3><p>Weniger Verluste nach der Ernte,<br>bessere Preise für Kleinbauern</p></div>
+                    <div class="card green rv d3"><div class="row1"><span class="tag">Modul AGRI</span></div><h3>Obst & <span class="it">Gemüse</span></h3><p>Weniger Verluste nach der Ernte,<br>bessere Preise für Kleinbauern</p></div>
                     <div class="card rv d4"><div class="row1"><span class="tag">Modul MED</span></div><h3>Impfstoffe & <span class="it">Medizin</span></h3><p>Sichere Lagerung bei 2–10 °C,<br>auch in abgelegenen Orten</p></div>
                 </div>
             </section>
@@ -800,9 +812,9 @@
             <section class="slide" data-roman="V." data-meta="Synthese" aria-label="SWOT">
                 <div class="head" style="top:180px"><div class="h2 rv d1" style="font-size:88px">SWOT auf einen <span class="it">Blick</span><span class="dot">.</span></div></div>
                 <div class="swot">
-                    <div class="card rv d2"><h3><span class="it">S</span>Stärken</h3><ul><li>Hybrid: Wind + PV + Speicher</li><li>Modular: AGRI, MED, Kapazität</li><li>Robuste, sichtbare Segeltechnik</li></ul></div>
+                    <div class="card green rv d2"><h3><span class="it">S</span>Stärken</h3><ul><li>Hybrid: Wind + PV + Speicher</li><li>Modular: AGRI, MED, Kapazität</li><li>Robuste, sichtbare Segeltechnik</li></ul></div>
                     <div class="card rv d3"><h3><span class="it">W</span>Schwächen</h3><ul><li>Machbarkeit noch nicht nachgewiesen</li><li>Wind teurer je kW als PV</li><li>Keine Referenzen, kein Servicenetz</li></ul></div>
-                    <div class="card rv d4"><h3><span class="it">O</span>Chancen</h3><ul><li>Hohe Verluste, wachsender Kühlmarkt</li><li>35–50 % Förderung (MIDH)</li><li>Erzeugerorganisationen als Betreiber</li></ul></div>
+                    <div class="card green rv d4"><h3><span class="it">O</span>Chancen</h3><ul><li>Hohe Verluste, wachsender Kühlmarkt</li><li>35–50 % Förderung (MIDH)</li><li>Erzeugerorganisationen als Betreiber</li></ul></div>
                     <div class="card rv d5"><h3><span class="it">T</span>Risiken</h3><ul><li>Etablierte solare Wettbewerber</li><li>Preissensible Abnehmer</li><li>Regulatorische Hürden für MED</li></ul></div>
                 </div>
             </section>
@@ -815,7 +827,7 @@
                     <div class="h2 rv d2">Erst AGRI, dann <span class="it">MED</span><span class="dot">.</span></div>
                 </div>
                 <div class="cards3">
-                    <div class="card rv d3"><div class="row1"><span class="tag">Zielgruppe</span></div><h3>Erzeuger&shy;organisationen</h3><p>bündeln Mengen, sind förderfähig, regeln den Zugang</p></div>
+                    <div class="card green rv d3"><div class="row1"><span class="tag">Zielgruppe</span></div><h3>Erzeuger&shy;organisationen</h3><p>bündeln Mengen, sind förderfähig, regeln den Zugang</p></div>
                     <div class="card rv d4"><div class="row1"><span class="tag">Modell</span></div><h3>Cooling as a Service</h3><p>Nutzungsgebühr statt hoher Anschaffung für Bauern</p></div>
                     <div class="card later rv d5"><div class="row1"><span class="tag">Später</span></div><h3>Modul MED</h3><p>erst nach Feldtest von AGRI und geklärter Zulassung</p></div>
                 </div>
