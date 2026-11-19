@@ -543,6 +543,45 @@
         .card.green { background: var(--green);
             --ink: #f2f2ee; --ink-soft: #eef2e6; --ink-mute: #dfe6d2; --ink-faint: #c9d3b8; --line: rgba(242,242,238,0.3); --coral: #f2f2ee; }
 
+
+        /* ===========================================
+           FOLIE 14 — SWOT als Wind-Bild: Gegenwind links, Rückenwind rechts, Windrad in der Mitte
+           =========================================== */
+        .s13w .sw-col { position: absolute !important; top: 330px; width: 610px; }
+        .s13w .sw-col.neg { left: var(--pad); text-align: right; }
+        .s13w .sw-col.pos { right: var(--pad); }
+        .s13w .sw-title span { display: block; font-family: var(--f-display); font-weight: 800; font-size: 60px; letter-spacing: -0.03em; line-height: 1; }
+        .s13w .sw-title small { font-family: var(--f-display); font-weight: 600; font-size: 18px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); }
+        .s13w .sw-col.pos .sw-title span { color: #a9c46c; }
+        .s13w .sw-grp { margin-top: 34px; }
+        .s13w .sw-h { font-family: var(--f-display); font-weight: 700; font-size: 26px; margin-bottom: 12px; }
+        .s13w .sw-h em { font-family: var(--f-serif); font-style: italic; font-weight: 500; color: var(--ink-faint); margin-left: 8px; }
+        .s13w ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+        .s13w .sw-col.neg ul { align-items: flex-end; }
+        .s13w .sw-col.pos ul { align-items: flex-start; }
+        .s13w .pill { display: inline-block; padding: 11px 22px; border-radius: 999px; font-size: 23px; font-weight: 500; line-height: 1.2; opacity: 0; }
+        .s13w .pill.s, .s13w .pill.o { background: var(--green); color: #f2f2ee; box-shadow: 0 10px 24px -12px rgba(0,0,0,0.5); }
+        .s13w .pill.w, .s13w .pill.t { border: 1.5px solid rgba(242,242,238,0.7); color: #f2f2ee; background: rgba(2,20,35,0.18); }
+        /* Fahnen werden von außen zum Windrad hin hereingeweht */
+        @keyframes blowL { 0% { opacity: 0; transform: translateX(-260px) rotate(-6deg); } 60% { opacity: 1; transform: translateX(14px) rotate(1deg); } 100% { opacity: 1; transform: none; } }
+        @keyframes blowR { 0% { opacity: 0; transform: translateX(260px) rotate(6deg); } 60% { opacity: 1; transform: translateX(-14px) rotate(-1deg); } 100% { opacity: 1; transform: none; } }
+        .s13w.visible .pill { animation: blowR 0.9s cubic-bezier(0.25, 0.7, 0.3, 1) both; }
+        .s13w.visible .sw-col.neg .pill { animation-name: blowL; }
+        .s13w.visible .pill.s { animation-delay: calc(0.5s + var(--i) * 0.14s); }
+        .s13w.visible .pill.o { animation-delay: calc(1.0s + var(--i) * 0.14s); }
+        .s13w.visible .pill.w { animation-delay: calc(1.6s + var(--i) * 0.14s); }
+        .s13w.visible .pill.t { animation-delay: calc(2.1s + var(--i) * 0.14s); }
+        .s13w .sw-mid { position: absolute !important; left: 790px; width: 340px; top: 300px; height: 700px; }
+        .s13w .sw-mid canvas { width: 340px; height: 700px; display: block; }
+        .s13w .sw-streaks { position: absolute !important; inset: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 0 !important; }
+        .s13w .sw-streaks path { fill: none; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 140 1400; stroke-dashoffset: 140; opacity: 0; }
+        .s13w .sw-streaks .pos path { stroke: #a9c46c; }
+        .s13w .sw-streaks .neg path { stroke: rgba(242,242,238,0.55); }
+        .s13w.visible .sw-streaks path { animation: swGust 2.8s cubic-bezier(0.4, 0.1, 0.4, 1) infinite; }
+        .s13w.visible .sw-streaks path:nth-child(2) { animation-delay: 0.9s; }
+        .s13w.visible .sw-streaks path:nth-child(3) { animation-delay: 1.8s; }
+        @keyframes swGust { 0% { stroke-dashoffset: 140; opacity: 0; } 15% { opacity: 0.8; } 85% { opacity: 0.5; } 100% { stroke-dashoffset: -760; opacity: 0; } }
+
         /* ===========================================
            STEUERUNG + EDITOR (außerhalb der Bühne)
            =========================================== */
@@ -808,14 +847,25 @@
                 </div>
             </section>
 
-            <!-- === 13 SWOT === -->
-            <section class="slide" data-roman="V." data-meta="Synthese" aria-label="SWOT">
-                <div class="head" style="top:180px"><div class="h2 rv d1" style="font-size:88px">SWOT auf einen <span class="it">Blick</span><span class="dot">.</span></div></div>
-                <div class="swot">
-                    <div class="card green rv d2"><h3><span class="it">S</span>Stärken</h3><ul><li>Hybrid: Wind + PV + Speicher</li><li>Modular: AGRI, MED, Kapazität</li><li>Robuste, sichtbare Segeltechnik</li></ul></div>
-                    <div class="card rv d3"><h3><span class="it">W</span>Schwächen</h3><ul><li>Machbarkeit noch nicht nachgewiesen</li><li>Wind teurer je kW als PV</li><li>Keine Referenzen, kein Servicenetz</li></ul></div>
-                    <div class="card green rv d4"><h3><span class="it">O</span>Chancen</h3><ul><li>Hohe Verluste, wachsender Kühlmarkt</li><li>35–50 % Förderung (MIDH)</li><li>Erzeugerorganisationen als Betreiber</li></ul></div>
-                    <div class="card rv d5"><h3><span class="it">T</span>Risiken</h3><ul><li>Etablierte solare Wettbewerber</li><li>Preissensible Abnehmer</li><li>Regulatorische Hürden für MED</li></ul></div>
+            <!-- === 13 SWOT als Wind-Bild ===
+                 Sprecher: Rechts der Rückenwind (Stärken intern, Chancen extern), links der Gegenwind
+                 (Schwächen intern, Risiken extern). Entscheidend: Rückenwind nur dort, wo Wind und schwaches Netz zusammenkommen. -->
+            <section class="slide s13w" data-roman="V." data-meta="Synthese · SWOT" aria-label="SWOT">
+                <div class="head"><div class="h2 rv d1">Was uns antreibt – und <span class="it">bremst</span><span class="dot">.</span></div></div>
+                <svg class="sw-streaks" viewBox="0 0 1920 1080" aria-hidden="true">
+                    <g class="neg"><path d="M150 470 C 400 440, 620 500, 820 480"/><path d="M150 640 C 420 620, 600 680, 820 650"/><path d="M150 820 C 380 800, 640 860, 820 830"/></g>
+                    <g class="pos"><path d="M1770 470 C 1520 440, 1300 500, 1100 480"/><path d="M1770 640 C 1500 620, 1320 680, 1100 650"/><path d="M1770 820 C 1540 800, 1280 860, 1100 830"/></g>
+                </svg>
+                <div class="sw-col neg">
+                    <div class="sw-title rv d2"><span>Gegenwind</span><small>Schwächen &amp; Risiken</small></div>
+                    <div class="sw-grp"><div class="sw-h">Schwächen <em>intern</em></div><ul><li class="pill w" style="--i:0">Machbarkeit noch nicht nachgewiesen</li><li class="pill w" style="--i:1">Wind teurer je kW als PV</li><li class="pill w" style="--i:2">Keine Referenzen, kein Servicenetz</li></ul></div>
+                    <div class="sw-grp"><div class="sw-h">Risiken <em>extern</em></div><ul><li class="pill t" style="--i:0">Etablierte solare Wettbewerber</li><li class="pill t" style="--i:1">Preissensible Abnehmer</li><li class="pill t" style="--i:2">Regulatorische Hürden für MED</li></ul></div>
+                </div>
+                <div class="sw-mid"><canvas id="swotMill" aria-label="3D-Windrad"></canvas></div>
+                <div class="sw-col pos">
+                    <div class="sw-title rv d2"><span>Rückenwind</span><small>Stärken &amp; Chancen</small></div>
+                    <div class="sw-grp"><div class="sw-h">Stärken <em>intern</em></div><ul><li class="pill s" style="--i:0">Hybrid: Wind + PV + Speicher</li><li class="pill s" style="--i:1">Modular: AGRI, MED, Kapazität</li><li class="pill s" style="--i:2">Robuste, sichtbare Segeltechnik</li></ul></div>
+                    <div class="sw-grp"><div class="sw-h">Chancen <em>extern</em></div><ul><li class="pill o" style="--i:0">Hohe Verluste, wachsender Kühlmarkt</li><li class="pill o" style="--i:1">35–50 % Förderung (MIDH)</li><li class="pill o" style="--i:2">Erzeugerorganisationen als Betreiber</li></ul></div>
                 </div>
             </section>
 
@@ -1075,7 +1125,7 @@
             constructor() {
                 this.isActive = false;
                 this.key = 'deck-edits-az-' + location.pathname;
-                this.targets = document.querySelectorAll('.slide .h1, .slide .h2, .slide h3, .slide p, .slide li, .slide .eyebrow, .slide blockquote, .slide .k, .slide .v, .slide .why, .slide .claim, .slide .sub');
+                this.targets = document.querySelectorAll('.slide .h1, .slide .h2, .slide h3, .slide p, .slide li, .slide .eyebrow, .slide blockquote, .slide .k, .slide .v, .slide .why, .slide .claim, .slide .sub, .slide .pill');
                 this.restore();
             }
             toggleEditMode() {
@@ -1371,6 +1421,11 @@
                     angle += speed * dt; rotor.rotation.z = angle;            // dreht so, dass er nach links "pustet"
                     g.rotation.y = 0.55 - Math.PI / 2 + Math.sin(s * 0.5) * 0.06;
                 };
+            }, true);
+            const swc = document.getElementById('swotMill');
+            if (swc) add(swc, 340, 700, 30, [0.4, 0.5, 12.6], [0, 0, 0], (scene) => {
+                const { g, rotor } = buildTurbine(); scene.add(g);
+                return (s) => { rotor.rotation.z = -s * 1.3; g.rotation.y = Math.sin(s * 0.4) * 0.25; };
             }, true);
             document.querySelectorAll('canvas.mini3d').forEach((c) => {
                 const k = c.dataset.obj;
