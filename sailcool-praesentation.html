@@ -586,18 +586,13 @@
         /* ===========================================
            FOLIE 14 — SWOT: klare 2×2-Matrix mit beschrifteten Achsen
            =========================================== */
-        .s13c .sx-grid { position: absolute !important; left: 400px; right: var(--pad); top: 395px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 26px; height: 590px; }
-        .s13c .sx { position: relative; padding: 40px 48px; overflow: hidden; }
-        .s13c .sx-l { position: absolute; right: 34px; bottom: -40px; font-family: var(--f-serif); font-style: italic; font-weight: 500; font-size: 150px; line-height: 1; opacity: 0.18; }
-        .s13c .sx-t { font-family: var(--f-display); font-weight: 800; font-size: 54px; letter-spacing: -0.03em; line-height: 1.02; margin-top: 20px; }
-        .s13c .sx p { font-size: 25px; line-height: 1.4; margin-top: 16px; color: var(--ink-mute); max-width: 520px; }
-        .s13c .sx-col { position: absolute !important; top: 340px; font-family: var(--f-display); font-weight: 700; font-size: 26px; letter-spacing: 0.14em; text-transform: uppercase; }
-        .s13c .sx-col span { font-weight: 400; margin-left: 6px; }
-        .s13c .h1c { left: 400px; color: #a9c46c; }
-        .s13c .h2c { left: calc(400px + (1920px - 400px - 150px + 26px) / 2); color: var(--ink-mute); }
-        .s13c .sx-row { position: absolute !important; left: var(--pad); width: 220px; font-size: 21px; line-height: 1.35; color: var(--ink-faint); }
-        .s13c .sx-row b { display: block; font-family: var(--f-display); font-weight: 800; font-size: 40px; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 6px; }
-        .s13c .r1 { top: 470px; } .s13c .r2 { top: 778px; }
+        .s13c .sx-grid { position: absolute !important; left: var(--pad); right: var(--pad); top: 360px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 28px; height: 600px; }
+        .s13c .sx { padding: 56px 64px; display: flex; flex-direction: column; justify-content: center; }
+        .s13c .sx { position: relative; overflow: hidden; }
+        .s13c .sx-l { position: absolute; right: 40px; bottom: -58px; font-family: var(--f-serif); font-style: italic; font-weight: 500; font-size: 260px; line-height: 1; opacity: 0.16; pointer-events: none; }
+        .s13c .sx-k, .s13c .sx-t { position: relative; }
+        .s13c .sx-k { font-family: var(--f-display); font-weight: 700; font-size: 24px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-mute); }
+        .s13c .sx-t { font-family: var(--f-display); font-weight: 800; font-size: 64px; letter-spacing: -0.03em; line-height: 1.02; margin-top: 18px; }
 
         /* ===========================================
            STEUERUNG + EDITOR (außerhalb der Bühne)
@@ -864,20 +859,18 @@
                 </div>
             </section>
 
-            <!-- === 13 SWOT: eine Aussage, vier Felder ===
-                 Sprecher: Fazit zuerst – starke Idee, aber noch nicht bewiesen. Dann je Feld EIN Satz:
-                 Stärke Hybrid & modular · Schwäche: Machbarkeit offen · Chance: großer Bedarf + Förderung · Risiko: Solar-Konkurrenz. -->
-            <section class="slide s13c" data-roman="V." data-meta="Synthese · SWOT" aria-label="SWOT">
-                <div class="head"><div class="h2 rv d1">Starke Idee – noch nicht <span class="it">bewiesen</span><span class="dot">.</span></div></div>
-                <div class="sx-col h1c rv d2">Hilft uns <span>↑</span></div>
-                <div class="sx-col h2c rv d2">Bremst uns <span>↓</span></div>
-                <div class="sx-row r1 rv d2"><b>Intern</b>was wir selbst<br>beeinflussen</div>
-                <div class="sx-row r2 rv d2"><b>Extern</b>was der Markt<br>vorgibt</div>
+            <!-- === 13 SWOT ===
+                 Sprecher: Stärke – hybrid & modular (Wind + Solar + Speicher, AGRI & MED).
+                 Schwäche – Machbarkeit noch offen, Wind je kW teurer als Solar, keine Referenzen.
+                 Chance – 5,7 Mrd. € Verluste, 35–50 % Förderung, Erzeugerorganisationen als Betreiber.
+                 Risiko – etablierte Solar-Anbieter (Ecozen > 1.200 Anlagen), preissensible Kunden, Zulassung MED. -->
+            <section class="slide s13c" data-roman="V." data-meta="Synthese" aria-label="SWOT">
+                <div class="head"><div class="h2 rv d1">SWOT-Analyse<span class="dot">.</span></div></div>
                 <div class="sx-grid">
-                    <div class="card green sx rv d3"><span class="sx-l">S</span><div class="sx-t">Hybrid &amp; modular</div><p>Wind + Solar + Speicher · ein System für AGRI und MED</p></div>
-                    <div class="card sx rv d4"><span class="sx-l">W</span><div class="sx-t">Noch nicht bewiesen</div><p>Machbarkeit offen · Wind teurer je kW als Solar</p></div>
-                    <div class="card green sx rv d5"><span class="sx-l">O</span><div class="sx-t">Bedarf + Förderung</div><p>5,7 Mrd. € Verluste pro Jahr · 35–50 % staatlicher Zuschuss</p></div>
-                    <div class="card sx rv d6"><span class="sx-l">T</span><div class="sx-t">Solar-Konkurrenz</div><p>über 1.200 Ecofrost-Anlagen · preissensible Kunden</p></div>
+                    <div class="card green sx rv d2"><span class="sx-l">S</span><div class="sx-k">Stärken</div><div class="sx-t">Hybrid &amp; modular</div></div>
+                    <div class="card sx rv d3"><span class="sx-l">W</span><div class="sx-k">Schwächen</div><div class="sx-t">Noch nicht bewiesen</div></div>
+                    <div class="card green sx rv d4"><span class="sx-l">O</span><div class="sx-k">Chancen</div><div class="sx-t">Großer Bedarf &amp; Förderung</div></div>
+                    <div class="card sx rv d5"><span class="sx-l">T</span><div class="sx-k">Risiken</div><div class="sx-t">Starke Solar-Konkurrenz</div></div>
                 </div>
             </section>
 
