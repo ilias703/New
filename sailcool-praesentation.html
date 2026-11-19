@@ -343,10 +343,10 @@
         /* ===========================================
            16 ENDE — Mega-Wort
            =========================================== */
-        .s16 .mega { position: absolute !important; left: 130px; bottom: 150px; font-family: var(--f-display); font-weight: 900; font-size: 400px; line-height: 0.8; letter-spacing: -0.06em; }
+        .s16 .mega { position: absolute !important; left: 130px; bottom: 140px; font-family: var(--f-display); font-weight: 900; font-size: 320px; line-height: 0.8; letter-spacing: -0.06em; }
         .s16 .ask { position: absolute !important; left: var(--pad); top: 200px; }
         .s16 .ask .it { font-size: 110px; display: block; margin-top: 24px; }
-        .s16 .team { position: absolute !important; right: var(--pad); top: 200px; text-align: right; font-family: var(--f-display); font-weight: 600; font-size: 24px; line-height: 1.9; }
+        .s16 .team { position: absolute !important; right: var(--pad); top: 140px; text-align: right; font-family: var(--f-display); font-weight: 600; font-size: 24px; line-height: 1.9; }
         .s16 .team b { color: var(--coral); font-weight: 500; margin-right: 10px; font-family: var(--f-mono); font-size: 18px; }
         .s16 .fin { position: absolute !important; right: var(--pad); bottom: 170px; font-family: var(--f-serif); font-style: italic; font-size: 40px; color: var(--coral); }
 
@@ -443,21 +443,35 @@
         .s16 .mega { display: flex; align-items: flex-end; -webkit-perspective: 1600px; perspective: 1600px; }
         .s16 .mega .ch { display: inline-block; opacity: 0; transform-origin: 50% 85%; will-change: transform, opacity; }
         .s16 .mega .ch.dot { color: var(--coral); }
-        /* Keyframes statt Transitions: laufen in Safari zuverlässig für jeden Buchstaben */
-        @keyframes chIn {
-            0%   { opacity: 0; transform: translateY(-260px) rotateX(-110deg) scale(0.9); }
-            25%  { opacity: 1; }
-            70%  { transform: translateY(12px) rotateX(8deg) scale(1); }
+        /* WIND: Die Buchstaben werden vom Windrad (rechts) weggepustet, trudeln nach links
+           und landen nacheinander. --dx/--dy/--r setzt JS je Buchstabe (Startpunkt = Rotor). */
+        @keyframes blowIn {
+            0%   { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--r)) scale(0.3); }
+            10%  { opacity: 1; }
+            45%  { transform: translate(calc(var(--dx) * 0.35), calc(var(--dy) * -0.45 - 60px)) rotate(calc(var(--r) * -0.6)) scale(0.85); }
+            72%  { transform: translate(calc(var(--dx) * -0.03), 14px) rotate(calc(var(--r) * 0.08)) scale(1.03); }
+            86%  { transform: translate(calc(var(--dx) * 0.008), -6px) rotate(calc(var(--r) * -0.02)) scale(1); }
             100% { opacity: 1; transform: none; }
         }
-        @keyframes dotIn {
-            0%   { opacity: 0; transform: translateY(-320px) scale(0.6); }
-            55%  { opacity: 1; transform: translateY(0) scale(1.15, 0.85); }
-            75%  { transform: translateY(-40px) scale(0.95, 1.05); }
-            100% { opacity: 1; transform: none; }
+        /* Restwind: leichtes Flattern nach der Landung */
+        @keyframes flutter {
+            0%, 100% { transform: none; }
+            50% { transform: translateY(-4px) rotate(-1.1deg) skewX(-1.5deg); }
         }
-        .s16.visible .mega .ch { animation: chIn 1.05s cubic-bezier(0.2, 0.8, 0.25, 1) both; }
-        .s16.visible .mega .ch.dot { animation: dotIn 0.9s cubic-bezier(0.3, 0.7, 0.4, 1) both; }
+        .s16.visible .mega .ch { animation-name: blowIn, flutter; animation-duration: 1.7s, 3.2s;
+            animation-timing-function: cubic-bezier(0.25, 0.6, 0.3, 1), ease-in-out; animation-iteration-count: 1, infinite;
+            animation-fill-mode: both, none; }
+
+        /* Windböen: feine Linien ziehen vom Rotor nach links */
+        .s16 .wind { position: absolute !important; inset: 0; width: 1920px; height: 1080px; pointer-events: none; z-index: 0 !important; }
+        .s16 .wind path { fill: none; stroke: var(--ink-faint); stroke-width: 2.2; stroke-linecap: round; stroke-dasharray: 220 3200; stroke-dashoffset: 220; opacity: 0; }
+        .s16.visible .wind path { animation: gust 2.6s cubic-bezier(0.35, 0.1, 0.35, 1) infinite; }
+        @keyframes gust { 0% { stroke-dashoffset: 220; opacity: 0; } 12% { opacity: 0.55; } 80% { opacity: 0.35; } 100% { stroke-dashoffset: -1900; opacity: 0; } }
+
+        /* Windrad rechts */
+        .s16 .endmill { position: absolute !important; right: 110px; bottom: 70px; width: 400px; height: 660px; }
+        .s16 .endmill canvas { width: 400px; height: 660px; display: block; }
+        .s16 .endmill .shadow { position: absolute; left: 50%; bottom: 12px; width: 200px; height: 28px; transform: translateX(-50%); border-radius: 50%; background: radial-gradient(closest-side, rgba(21,20,15,0.25), transparent); }
 
         /* ===========================================
            STEUERUNG + EDITOR (außerhalb der Bühne)
@@ -737,6 +751,8 @@
             <section class="slide s16" data-meta="Fragen & Diskussion" aria-label="Ende">
                 <div class="ask rv d1"><div class="eyebrow">Danke für eure Aufmerksamkeit</div><span class="it">Fragen?</span></div>
                 <div class="team rv d2"><div>Sven Feuerbacher</div><div>Patricia Walter</div><div>Felix Fleig</div><div>David Ammann</div><div>Ilias Ainous</div></div>
+                <svg class="wind" viewBox="0 0 1920 1080" aria-hidden="true"><path d="M1610 450 C 1300 380, 1000 560, 560 520 S 220 600, 90 560" style="animation-delay:0.15s"/><path d="M1600 520 C 1250 520, 980 660, 600 640 S 260 700, 100 660" style="animation-delay:0.48s"/><path d="M1620 600 C 1300 640, 1050 760, 700 740 S 300 780, 120 760" style="animation-delay:0.81s"/><path d="M1590 480 C 1200 440, 900 470, 640 430 S 300 470, 140 440" style="animation-delay:1.14s"/><path d="M1610 680 C 1320 740, 1100 860, 760 840 S 380 880, 160 860" style="animation-delay:1.47s"/><path d="M1600 560 C 1280 590, 1020 600, 760 580 S 420 620, 200 600" style="animation-delay:1.80s"/></svg>
+                <div class="endmill"><canvas id="turbineEnd" aria-label="3D-Windrad"></canvas><div class="shadow"></div></div>
                 <div class="mega" data-word="Sailcool."></div>
             </section>
 
@@ -786,9 +802,26 @@
             };
             el.innerHTML = [...el.dataset.word].map((ch, i) => {
                 const dot = ch === '.';
-                return `<span class="ch${dot ? ' dot' : ''}" style="animation-delay:${(0.35 + i * 0.13).toFixed(2)}s; text-shadow:${depth(dot ? '#b9503f' : '#5a5448', dot ? '#8f3a2d' : '#3a372f')}">${ch}</span>`;
+                const d1 = 0.45 + i * 0.12, d2 = d1 + 1.7 + i * 0.17;      // Wind-Flug, danach Flattern
+                return `<span class="ch${dot ? ' dot' : ''}" style="animation-delay:${d1.toFixed(2)}s, ${d2.toFixed(2)}s; text-shadow:${depth(dot ? '#b9503f' : '#5a5448', dot ? '#8f3a2d' : '#3a372f')}">${ch}</span>`;
             }).join('');
         });
+        /* Jeder Buchstabe startet am Rotor des Windrads (Stage-Koordinaten, unabhängig von der Skalierung) */
+        function aimLetters() {
+            document.querySelectorAll('.mega[data-word]').forEach((el) => {
+                const mill = el.closest('.slide').querySelector('.endmill');
+                const mx = mill ? mill.offsetLeft + mill.offsetWidth * 0.5 : 1700;
+                const my = mill ? mill.offsetTop + mill.offsetHeight * 0.28 : 450;
+                el.querySelectorAll('.ch').forEach((c, i) => {
+                    const cx = el.offsetLeft + c.offsetLeft + c.offsetWidth / 2, cy = el.offsetTop + c.offsetTop + c.offsetHeight / 2;
+                    c.style.setProperty('--dx', (mx - cx) + 'px');
+                    c.style.setProperty('--dy', (my - cy + (i % 2 ? -40 : 50)) + 'px');
+                    c.style.setProperty('--r', ((i % 2 ? 1 : -1) * (120 + i * 25)) + 'deg');
+                });
+            });
+        }
+        aimLetters();
+        if (document.fonts && document.fonts.ready) document.fonts.ready.then(aimLetters);
 
         /* ===========================================
            SLIDE PRESENTATION CONTROLLER
@@ -1158,6 +1191,21 @@
                 const { g, rotor } = buildTurbine(); g.position.y = 1.05; scene.add(g);
                 return (s) => { rotor.rotation.z = -s * 1.1; g.rotation.y = -0.35 + Math.sin(s * 0.35) * 0.22; };
             });
+            const endCanvas = document.getElementById('turbineEnd');
+            if (endCanvas) add(endCanvas, 400, 660, 30, [-1.4, 0.4, 12.6], [0, 0, 0], (scene) => {
+                const { g, rotor } = buildTurbine(); g.rotation.y = 0.55; scene.add(g);
+                const slide = endCanvas.closest('.slide');
+                let was = false, shown = 0, last = 0, angle = 0;
+                return (s) => {
+                    const vis = slide.classList.contains('visible');
+                    if (vis && !was) shown = s; was = vis;
+                    const dt = Math.min(0.05, Math.max(0, s - last)); last = s;
+                    const since = s - shown;
+                    const speed = 1.2 + 9 * Math.exp(-since / 1.6);          // Böe: schnell anlaufen, dann auslaufen
+                    angle += speed * dt; rotor.rotation.z = angle;            // dreht so, dass er nach links "pustet"
+                    g.rotation.y = 0.55 + Math.sin(s * 0.5) * 0.06;
+                };
+            }, true);
             document.querySelectorAll('canvas.mini3d').forEach((c) => {
                 const k = c.dataset.obj;
                 if (k === 'wind') add(c, 300, 290, 30, [0.9, 0.6, 12.6], [0, 0, 0], (scene) => {
