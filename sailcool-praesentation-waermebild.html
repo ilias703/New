@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAILCOOL VILLAGE</title>
+
+    <!-- === FONTS ===
+         Big Shoulders: extrem schmale, laute Industrie-Grotesk
+         Big Shoulders Stencil: Schablonenschrift wie auf Containern
+         Martian Mono: Messwerte, Labels, Datenlogger-Look -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:wght@500;700;900&family=Big+Shoulders+Stencil:wght@700;900&family=Martian+Mono:wght@400;600;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           THEME — "KÜHLKETTE"
+           Wärmebild-Palette: von glühend (Problem) zu eiskalt (Lösung)
+           =========================================== */
+        :root {
+            --stage-bg: #000;
+            --slide-bg: #06070b;
+
+            --void: #06070b;
+            --void-2: #0d1018;
+            --snow: #eef6ff;
+            --ice: #8fe3ff;
+            --cold: #2f5bff;
+            --violet: #7a1cff;
+            --magenta: #ff1f6d;
+            --orange: #ff7a00;
+            --yellow: #ffe600;
+            --safety: #ff5a1f;
+
+            --heat: linear-gradient(90deg, #2f5bff, #7a1cff 25%, #ff1f6d 50%, #ff7a00 75%, #ffe600);
+            --heat-v: linear-gradient(0deg, #8fe3ff, #2f5bff 22%, #7a1cff 42%, #ff1f6d 62%, #ff7a00 80%, #ffe600);
+
+            --f-big: 'Big Shoulders', sans-serif;
+            --f-stencil: 'Big Shoulders Stencil', sans-serif;
+            --f-mono: 'Martian Mono', monospace;
+
+            --pad: 110px;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+            --snap: cubic-bezier(0.7, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ===========================================
+           FIXED 16:9 STAGE — viewport-base.css (vollständig)
+           =========================================== */
+        html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: var(--stage-bg, #000); }
+        .deck-viewport { position: fixed; inset: 0; overflow: hidden; background: var(--stage-bg, #000); }
+        .deck-stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0; background: var(--slide-bg, #fff); }
+        .slide { position: absolute; inset: 0; width: 1920px; height: 1080px; overflow: hidden; display: block; visibility: hidden; opacity: 0; pointer-events: none; background: var(--slide-bg, #fff); }
+        .slide.active, .slide.visible { visibility: visible; opacity: 1; pointer-events: auto; z-index: 1; }
+        img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+        .deck-controls { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 1000; }
+        @media print {
+            html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+            .deck-viewport { position: static; overflow: visible; background: #fff; }
+            .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+            .slide { position: relative; display: block !important; visibility: visible !important; opacity: 1 !important; pointer-events: auto !important; width: 1920px; height: 1080px; break-after: page; page-break-after: always; }
+            .slide:last-child { break-after: auto; page-break-after: auto; }
+            .deck-controls { display: none !important; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+        }
+
+        /* ===========================================
+           GRUNDLAGEN: Scanlines, Körnung, Folienwechsel als harter Wisch
+           =========================================== */
+        .slide { color: var(--snow); font-family: var(--f-big); }
+        .slide.visible { animation: wipe 0.75s var(--snap) both; }
+        @keyframes wipe { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+
+        .deck-stage::after { /* Scanlines + Körnung über allem */
+            content: ""; position: absolute; inset: 0; z-index: 50; pointer-events: none;
+            background:
+                repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 4px),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+            mix-blend-mode: screen;
+        }
+
+        /* Container-Riffelung als Textur */
+        .corrugated { background-image: repeating-linear-gradient(90deg, rgba(255,255,255,0.045) 0 22px, rgba(0,0,0,0.25) 22px 26px, transparent 26px 48px); }
+
+        /* Warnband */
+        .hazard { height: 46px; background: repeating-linear-gradient(-45deg, var(--yellow) 0 34px, var(--void) 34px 68px); }
+
+        /* Wärmebild-Blobs */
+        .blob { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.85; pointer-events: none; }
+
+        /* ===========================================
+           HUD — Datenlogger-Kopfzeile + fallendes Thermometer
+           liegt über allen Folien, gesteuert per data-temp
+           =========================================== */
+        .hud { position: absolute; inset: 0; z-index: 40; pointer-events: none; font-family: var(--f-mono); color: var(--snow); }
+        .hud .tl, .hud .tr { position: absolute; top: 46px; font-size: 17px; letter-spacing: 0.12em; text-transform: uppercase; }
+        .hud .tl { left: var(--pad); display: flex; gap: 28px; align-items: center; }
+        .hud .tl b { font-family: var(--f-stencil); font-weight: 900; font-size: 30px; letter-spacing: 0.04em; }
+        .hud .rec { display: inline-flex; align-items: center; gap: 10px; }
+        .hud .rec i { width: 12px; height: 12px; border-radius: 50%; background: var(--magenta); animation: blink 1.2s steps(2) infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+        .hud .tr { right: 150px; text-align: right; }
+        .hud .temp { font-family: var(--f-big); font-weight: 900; font-size: 64px; letter-spacing: 0; line-height: 0.9; display: block; transition: color 0.6s; }
+        .hud .thermo { position: absolute; right: 60px; top: 170px; bottom: 60px; width: 14px; border-radius: 7px; background: var(--heat-v); opacity: 0.9; }
+        .hud .thermo .mk { position: absolute; left: -16px; width: 46px; height: 6px; background: var(--snow); box-shadow: 0 0 18px var(--snow); transition: bottom 0.9s var(--snap); }
+        .hud .thermo .lbl { position: absolute; left: -50px; font-size: 13px; transform: translateX(-100%); white-space: nowrap; color: rgba(238,246,255,0.6); }
+        .hud .pg { position: absolute; left: var(--pad); bottom: 40px; font-size: 16px; letter-spacing: 0.14em; color: rgba(238,246,255,0.55); }
+        .hud.dark-ink { color: var(--void); }
+        .hud.dark-ink .pg { color: rgba(6,7,11,0.6); }
+        .hud.dark-ink .thermo .mk { background: var(--void); box-shadow: none; }
+        .hud.dark-ink .thermo .lbl { color: rgba(6,7,11,0.6); }
+
+        /* ===========================================
+           TYPO-BAUSTEINE
+           =========================================== */
+        .mono { font-family: var(--f-mono); }
+        .lbl { font-family: var(--f-mono); font-size: 20px; letter-spacing: 0.16em; text-transform: uppercase; }
+        .stencil { font-family: var(--f-stencil); font-weight: 900; }
+        .huge { font-family: var(--f-big); font-weight: 900; line-height: 0.8; letter-spacing: -0.01em; text-transform: uppercase; }
+        .outline { color: transparent; -webkit-text-stroke: 3px var(--snow); }
+        .heat-text { background: var(--heat); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .ice { color: var(--ice); }
+        .src { position: absolute; right: 150px; bottom: 40px; font-family: var(--f-mono); font-size: 14px; letter-spacing: 0.08em; color: rgba(238,246,255,0.45); }
+
+        /* ===========================================
+           ANIMATION — harte, gestaffelte Einblendungen
+           =========================================== */
+        .rv { opacity: 0; transform: translateY(60px); transition: opacity 0.6s var(--ease), transform 0.9s var(--ease); }
+        .rv.l { transform: translateX(-120px); }
+        .rv.r { transform: translateX(120px); }
+        .rv.z { transform: scale(1.25); }
+        .slide.visible .rv { opacity: 1; transform: none; }
+        .slide.visible .d1 { transition-delay: 0.30s; } .slide.visible .d2 { transition-delay: 0.42s; }
+        .slide.visible .d3 { transition-delay: 0.54s; } .slide.visible .d4 { transition-delay: 0.66s; }
+        .slide.visible .d5 { transition-delay: 0.78s; } .slide.visible .d6 { transition-delay: 0.90s; }
+        .grow-x { transform: scaleX(0); transform-origin: left; transition: transform 1.3s var(--snap) 0.5s; }
+        .slide.visible .grow-x { transform: scaleX(1); }
+        .rotor { transform-box: fill-box; transform-origin: center; animation: spin 9s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes drift { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px,-30px) scale(1.08); } }
+
+        /* ===========================================
+           01 TITEL
+           =========================================== */
+        .s01 .b1 { width: 900px; height: 900px; left: 900px; top: -120px; background: radial-gradient(circle, #ffe600, #ff7a00 30%, #ff1f6d 52%, #7a1cff 72%, transparent 78%); animation: drift 10s ease-in-out infinite; }
+        .s01 .mill { position: absolute; right: -40px; top: 60px; width: 900px; height: 900px; color: var(--void); }
+        .s01 .t1 { position: absolute; left: 90px; top: 170px; font-size: 420px; }
+        .s01 .t2 { position: absolute; left: 96px; top: 510px; font-size: 280px; }
+        .s01 .claim { position: absolute; left: var(--pad); top: 780px; line-height: 1.5; font-family: var(--f-mono); font-size: 26px; letter-spacing: 0.06em; text-transform: uppercase; }
+        .s01 .claim b { color: var(--yellow); font-weight: 800; }
+        .ticker { position: absolute; left: 0; right: 0; bottom: 90px; height: 64px; background: var(--snow); color: var(--void); overflow: hidden; display: flex; align-items: center; }
+        .ticker .run { display: flex; gap: 60px; white-space: nowrap; font-family: var(--f-mono); font-weight: 800; font-size: 22px; letter-spacing: 0.1em; animation: tick 40s linear infinite; }
+        .ticker .run span::before { content: "■ "; color: var(--magenta); }
+        @keyframes tick { to { transform: translateX(-50%); } }
+        .s01 .team { position: absolute; left: var(--pad); bottom: 36px; font-family: var(--f-mono); font-size: 16px; letter-spacing: 0.1em; color: rgba(238,246,255,0.7); text-transform: uppercase; }
+
+        /* ===========================================
+           02 DAS PROBLEM — Wärmebild, Zahl brennt
+           =========================================== */
+        .s02 { background: #12093a !important; }
+        .s02 .thermal { position: absolute; inset: -200px; background:
+            radial-gradient(circle at 36% 58%, #fff7b0 0, #ffe600 9%, #ff7a00 22%, #ff1f6d 36%, #7a1cff 55%, #2f5bff 70%, #12093a 84%);
+            animation: drift 12s ease-in-out infinite; }
+        .s02 .num { position: absolute; left: 40px; top: 70px; font-size: 900px; color: var(--void); mix-blend-mode: multiply; letter-spacing: -0.04em; }
+        .s02 .unit { position: absolute; left: 1250px; top: 250px; font-size: 200px; color: var(--void); }
+        .s02 .unit small { display: block; font-size: 96px; margin-top: 20px; }
+        .s02 .cap { position: absolute; left: 1250px; top: 650px; width: 560px; font-family: var(--f-mono); font-weight: 800; font-size: 34px; line-height: 1.3; color: var(--snow); text-transform: uppercase; }
+        .s02 .chips { position: absolute; left: var(--pad); bottom: 120px; display: flex; gap: 20px; }
+        .chip { font-family: var(--f-mono); font-weight: 800; font-size: 26px; padding: 16px 26px; background: var(--void); color: var(--yellow); text-transform: uppercase; letter-spacing: 0.06em; }
+
+        /* ===========================================
+           03 URSACHE — drei Zahlen, Warnband
+           =========================================== */
+        .s03 .h { position: absolute; left: var(--pad); top: 150px; font-size: 170px; }
+        .s03 .h span { color: var(--magenta); }
+        .s03 .cols { position: absolute; left: var(--pad); right: 150px; top: 560px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+        .s03 .c { padding: 0 40px; border-left: 4px solid rgba(238,246,255,0.25); }
+        .s03 .c:first-child { padding-left: 0; border: none; }
+        .s03 .c .n { font-size: 230px; line-height: 0.85; }
+        .s03 .c p { font-family: var(--f-mono); font-size: 24px; line-height: 1.45; margin-top: 18px; color: rgba(238,246,255,0.8); }
+        .s03 .hazard { position: absolute; left: 0; right: 0; bottom: 120px; }
+
+        /* ===========================================
+           04 DIE IDEE — harter Split AGRI / MED
+           =========================================== */
+        .s04 .half { position: absolute; top: 0; bottom: 0; width: 960px; overflow: hidden; }
+        .s04 .agri { left: 0; background: #0f2a12; }
+        .s04 .med { left: 960px; background: #0a2240; }
+        .s04 .vert { position: absolute; top: 170px; font-size: 400px; line-height: 0.8; }
+        .s04 .agri .vert { left: 100px; color: #3ddc5a; opacity: 0.9; }
+        .s04 .med .vert { right: 150px; color: var(--ice); opacity: 0.9; text-align: right; }
+        .s04 .info { position: absolute; bottom: 120px; font-family: var(--f-mono); font-size: 26px; line-height: 1.5; text-transform: uppercase; }
+        .s04 .agri .info { left: var(--pad); }
+        .s04 .med .info { right: 150px; text-align: right; }
+        .s04 .info b { display: block; font-family: var(--f-big); font-weight: 900; font-size: 64px; letter-spacing: 0; }
+        .s04 .center { position: absolute; left: 960px; top: 570px; transform: translateX(-50%); background: var(--snow); color: var(--void); padding: 34px 50px; text-align: center; z-index: 3; }
+        .s04 .center .huge { font-size: 96px; line-height: 0.9; }
+        .s04 .center .lbl { margin-top: 14px; }
+
+        /* ===========================================
+           05 FUNKTION — Energiefluss als Schaltplan
+           =========================================== */
+        .s05 .h { position: absolute; left: var(--pad); top: 140px; font-size: 150px; }
+        .s05 .rail { position: absolute; left: var(--pad); right: 150px; top: 470px; height: 380px; }
+        .s05 .rail svg.line { position: absolute; left: 0; top: 150px; width: 100%; height: 80px; overflow: visible; }
+        .s05 .rail svg.line path { stroke: var(--ice); stroke-width: 6; fill: none; stroke-dasharray: 18 14; animation: flow 1s linear infinite; }
+        @keyframes flow { to { stroke-dashoffset: -32; } }
+        .s05 .nodes { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(4, 1fr); }
+        .s05 .nd { position: relative; }
+        .s05 .nd .box { width: 300px; height: 300px; background: var(--void); border: 4px solid var(--snow); display: grid; place-items: center; }
+        .s05 .nd.k .box { background: var(--ice); border-color: var(--ice); color: var(--void); }
+        .s05 .nd .box .huge { font-size: 120px; }
+        .s05 .nd .t { font-family: var(--f-mono); font-weight: 800; font-size: 24px; margin-top: 22px; text-transform: uppercase; letter-spacing: 0.08em; }
+        .s05 .nd .t span { display: block; font-weight: 400; font-size: 18px; color: rgba(238,246,255,0.6); margin-top: 6px; }
+        .s05 .foot { position: absolute; left: var(--pad); bottom: 110px; font-family: var(--f-mono); font-size: 22px; color: rgba(238,246,255,0.75); }
+        .s05 .foot b { color: var(--yellow); }
+
+        /* ===========================================
+           06 FRAGE & HYPOTHESE
+           =========================================== */
+        .s06 .qm { position: absolute; right: 80px; top: -140px; font-size: 1400px; line-height: 1; }
+        .s06 .q { position: absolute; left: var(--pad); top: 170px; width: 1300px; font-size: 118px; line-height: 0.92; }
+        .s06 .q .lbl { display: block; color: var(--ice); margin-bottom: 26px; }
+        .s06 .warn { position: absolute; left: var(--pad); top: 690px; width: 1380px; background: var(--yellow); color: var(--void); padding: 34px 44px 38px; transform: rotate(-1.2deg); }
+        .s06 .warn .lbl { font-weight: 800; }
+        .s06 .warn p { font-family: var(--f-big); font-weight: 900; font-size: 64px; line-height: 0.98; text-transform: uppercase; margin-top: 10px; }
+        .s06 .warn p u { text-decoration-thickness: 6px; text-underline-offset: 8px; }
+
+        /* ===========================================
+           07 METHODIK — fünf Frachtlabels
+           =========================================== */
+        .s07 .h { position: absolute; left: var(--pad); top: 140px; font-size: 150px; }
+        .s07 .labels { position: absolute; left: var(--pad); right: 150px; top: 440px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 18px; }
+        .s07 .tag { background: var(--snow); color: var(--void); height: 470px; padding: 30px 28px; position: relative; display: flex; flex-direction: column; }
+        .s07 .tag:nth-child(2) { transform: translateY(30px) rotate(1deg); }
+        .s07 .tag:nth-child(4) { transform: translateY(-20px) rotate(-1deg); }
+        .s07 .tag .no { font-family: var(--f-stencil); font-weight: 900; font-size: 150px; line-height: 0.8; }
+        .s07 .tag .bar { height: 60px; margin: 24px 0; background: repeating-linear-gradient(90deg, var(--void) 0 3px, transparent 3px 6px, var(--void) 6px 10px, transparent 10px 12px, var(--void) 12px 13px, transparent 13px 18px); }
+        .s07 .tag h3 { font-weight: 900; font-size: 54px; line-height: 0.9; text-transform: uppercase; }
+        .s07 .tag p { font-family: var(--f-mono); font-size: 18px; line-height: 1.4; margin-top: auto; }
+        .s07 .tag.last { background: var(--yellow); }
+
+        /* ===========================================
+           08 KLEINWIND — Flächenvergleich (orange)
+           =========================================== */
+        .s08 { background: var(--safety) !important; color: var(--void); }
+        .s08 .h { position: absolute; left: var(--pad); top: 150px; font-size: 140px; width: 880px; }
+        .s08 .sq { position: absolute; background: var(--void); }
+        .s08 .cn { left: 1080px; top: 140px; width: 660px; height: 660px; }
+        .s08 .us { left: 760px; top: 490px; width: 310px; height: 310px; }
+        .s08 .in { left: 700px; top: 790px; width: 10px; height: 10px; background: var(--void); }
+        .s08 .sq span { position: absolute; left: 24px; bottom: 20px; color: var(--safety); font-weight: 900; font-size: 64px; line-height: 0.9; text-transform: uppercase; }
+        .s08 .sq span small { display: block; font-family: var(--f-mono); font-size: 20px; font-weight: 600; letter-spacing: 0.1em; }
+        .s08 .arrow { position: absolute; left: 230px; top: 760px; font-weight: 900; font-size: 64px; line-height: 0.9; text-transform: uppercase; }
+        .s08 .arrow small { display: block; font-family: var(--f-mono); font-size: 22px; font-weight: 600; }
+        .s08 .arrow svg { position: absolute; left: 300px; top: -20px; width: 180px; height: 60px; }
+        .s08 .cost { position: absolute; left: var(--pad); top: 560px; font-family: var(--f-mono); font-weight: 600; font-size: 24px; line-height: 1.5; width: 560px; }
+        .s08 .src { color: rgba(6,7,11,0.6); }
+
+        /* ===========================================
+           09 MARKTPOTENZIAL — Schriftgröße = Größenordnung
+           =========================================== */
+        .s09 .h { position: absolute; left: var(--pad); top: 130px; }
+        .s09 .stair { position: absolute; inset: 0; }
+        .s09 .st { position: absolute; display: flex; align-items: flex-end; gap: 26px; white-space: nowrap; }
+        .s09 .st .v { font-family: var(--f-big); font-weight: 900; line-height: 0.8; text-transform: uppercase; }
+        .s09 .st .k { font-family: var(--f-mono); font-size: 18px; letter-spacing: 0.1em; text-transform: uppercase; line-height: 1.5; padding-bottom: 6px; color: rgba(238,246,255,0.7); }
+        .s09 .st .k b { display: block; color: var(--snow); font-size: 22px; }
+        .s09 .a { left: 110px; top: 190px; } .s09 .a .v { font-size: 250px; color: rgba(238,246,255,0.22); }
+        .s09 .b { left: 330px; top: 450px; } .s09 .b .v { font-size: 170px; color: rgba(238,246,255,0.45); }
+        .s09 .c { left: 550px; top: 650px; } .s09 .c .v { font-size: 115px; color: rgba(238,246,255,0.75); }
+        .s09 .d { left: 760px; top: 820px; } .s09 .d .v { font-size: 96px; color: var(--yellow); }
+        .s09 .ring { position: absolute; left: 710px; top: 790px; width: 440px; height: 160px; border: 4px solid var(--yellow); border-radius: 50%; transform: rotate(-6deg); }
+        .s09 .note { position: absolute; left: 1200px; top: 830px; width: 420px; font-family: var(--f-mono); font-weight: 800; font-size: 22px; line-height: 1.35; color: var(--yellow); text-transform: uppercase; }
+
+        /* ===========================================
+           10 WETTBEWERB — Radar / Zielfernrohr
+           =========================================== */
+        .s10 .h { position: absolute; left: var(--pad); top: 160px; font-size: 150px; width: 720px; }
+        .s10 .sub { position: absolute; left: var(--pad); top: 470px; width: 560px; font-family: var(--f-mono); font-size: 24px; line-height: 1.5; color: rgba(238,246,255,0.8); }
+        .s10 .big1200 { position: absolute; left: var(--pad); top: 680px; font-family: var(--f-big); font-weight: 900; font-size: 120px; line-height: 0.8; color: var(--ice); }
+        .s10 .big1200 small { font-family: var(--f-mono); font-size: 18px; font-weight: 400; color: rgba(238,246,255,0.7); display: block; margin-top: 14px; letter-spacing: 0.06em; }
+        .scope { position: absolute; left: 860px; top: 140px; width: 880px; height: 820px; border: 2px solid rgba(143,227,255,0.5);
+            background:
+                linear-gradient(rgba(143,227,255,0.12) 2px, transparent 2px) 0 0 / 88px 82px,
+                linear-gradient(90deg, rgba(143,227,255,0.12) 2px, transparent 2px) 0 0 / 88px 82px; }
+        .scope::before, .scope::after { content: ""; position: absolute; background: rgba(143,227,255,0.6); }
+        .scope::before { left: 50%; top: 0; bottom: 0; width: 2px; }
+        .scope::after { top: 50%; left: 0; right: 0; height: 2px; }
+        .scope .ax { position: absolute; font-family: var(--f-mono); font-size: 15px; letter-spacing: 0.14em; color: var(--ice); text-transform: uppercase; }
+        .scope .ax.x { right: 10px; bottom: -30px; } .scope .ax.y { left: -30px; top: 0; transform-origin: left top; transform: rotate(-90deg) translateX(-100%); white-space: nowrap; }
+        .pt { position: absolute; transform: translate(-50%, 50%); font-family: var(--f-mono); font-size: 18px; font-weight: 600; white-space: nowrap; display: flex; align-items: center; gap: 12px; text-transform: uppercase; }
+        .pt i { width: 20px; height: 20px; background: rgba(238,246,255,0.5); }
+        .pt.sol i { background: var(--ice); }
+        .pt.l { flex-direction: row-reverse; }
+        .pt.me { font-family: var(--f-big); font-weight: 900; font-size: 44px; color: var(--yellow); }
+        .pt.me i { width: 90px; height: 90px; background: none; border: 4px solid var(--yellow); border-radius: 50%; position: relative; animation: lock 1.6s ease-in-out infinite; }
+        .pt.me i::before, .pt.me i::after { content: ""; position: absolute; background: var(--yellow); }
+        .pt.me i::before { left: 50%; top: -20px; bottom: -20px; width: 4px; transform: translateX(-50%); }
+        .pt.me i::after { top: 50%; left: -20px; right: -20px; height: 4px; transform: translateY(-50%); }
+        @keyframes lock { 50% { transform: scale(0.82); } }
+
+        /* ===========================================
+           11 PORTER — fünf Thermometer
+           =========================================== */
+        .s11 .h { position: absolute; left: var(--pad); top: 140px; font-size: 150px; }
+        .s11 .h span { -webkit-text-stroke: 3px var(--snow); color: transparent; }
+        .s11 .rows { position: absolute; left: var(--pad); right: 150px; top: 430px; }
+        .s11 .row { display: grid; grid-template-columns: 430px 1fr 300px; align-items: center; gap: 30px; height: 98px; }
+        .s11 .row .n { font-weight: 900; font-size: 64px; text-transform: uppercase; line-height: 1; }
+        .s11 .row .tube { height: 34px; background: rgba(238,246,255,0.1); border-radius: 17px; overflow: hidden; }
+        .s11 .row .tube div { height: 100%; background: var(--heat); background-size: 1060px 100%; border-radius: 17px; }
+        .s11 .row .r { font-family: var(--f-mono); font-size: 20px; line-height: 1.3; color: rgba(238,246,255,0.75); }
+        .s11 .row .r b { display: block; color: var(--snow); font-size: 24px; text-transform: uppercase; }
+
+        /* ===========================================
+           12 BEFRAGUNG — Brüche als Schablone
+           =========================================== */
+        .s12 .h { position: absolute; left: var(--pad); top: 140px; font-size: 150px; }
+        .s12 .grid { position: absolute; left: var(--pad); right: 150px; top: 440px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+        .s12 .f { font-family: var(--f-stencil); font-weight: 900; font-size: 300px; line-height: 0.8; color: var(--ice); }
+        .s12 .f sub { font-size: 140px; vertical-align: baseline; color: rgba(143,227,255,0.4); }
+        .s12 .t { font-weight: 900; font-size: 58px; text-transform: uppercase; line-height: 0.95; margin-top: 30px; }
+        .s12 .p { font-family: var(--f-mono); font-size: 20px; line-height: 1.45; margin-top: 16px; color: rgba(238,246,255,0.72); }
+        .s12 .disclaimer { position: absolute; left: var(--pad); bottom: 100px; font-family: var(--f-mono); font-size: 18px; background: var(--snow); color: var(--void); padding: 10px 18px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+        /* ===========================================
+           13 SWOT — riesige Schablonenbuchstaben
+           =========================================== */
+        .s13 .q { position: absolute; width: 960px; height: 540px; overflow: hidden; }
+        .s13 .q .L { position: absolute; right: -10px; top: -90px; font-family: var(--f-stencil); font-weight: 900; font-size: 760px; line-height: 1; opacity: 0.22; }
+        .s13 .q .in { position: absolute; left: var(--pad); top: 140px; }
+        .s13 .q:nth-child(2) .in, .s13 .q:nth-child(4) .in { left: 80px; top: 140px; }
+        .s13 .q:nth-child(3) .in, .s13 .q:nth-child(4) .in { top: 70px; }
+        .s13 .q h3 { font-weight: 900; font-size: 92px; text-transform: uppercase; line-height: 0.9; }
+        .s13 .q ul { list-style: none; margin-top: 22px; font-family: var(--f-mono); font-size: 23px; line-height: 1.7; }
+        .s13 .q li::before { content: "▸ "; }
+        .s13 .qs { left: 0; top: 0; background: #0f2a12; } .s13 .qs .L { color: #3ddc5a; }
+        .s13 .qw { left: 960px; top: 0; background: var(--void-2); } .s13 .qw .L { color: var(--snow); }
+        .s13 .qo { left: 0; top: 540px; background: #0a2240; } .s13 .qo .L { color: var(--ice); }
+        .s13 .qt { left: 960px; top: 540px; background: #3a0a1c; } .s13 .qt .L { color: var(--magenta); }
+
+        /* ===========================================
+           14 STRATEGIE — eine Route
+           =========================================== */
+        .s14 .h { position: absolute; left: var(--pad); top: 140px; font-size: 200px; }
+        .s14 .h span { color: var(--ice); }
+        .s14 .route { position: absolute; left: var(--pad); right: 150px; top: 520px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; }
+        .s14 .stp { position: relative; padding: 40px 50px 0 0; border-top: 10px solid var(--ice); }
+        .s14 .stp.later { border-top-style: dashed; border-color: rgba(238,246,255,0.5); }
+        .s14 .stp .no { position: absolute; top: -64px; left: 0; width: 118px; height: 118px; background: var(--ice); color: var(--void); display: grid; place-items: center; font-family: var(--f-stencil); font-weight: 900; font-size: 84px; }
+        .s14 .stp.later .no { background: var(--void); color: var(--snow); border: 4px solid var(--snow); }
+        .s14 .stp .lbl { margin-top: 80px; color: var(--ice); }
+        .s14 .stp h3 { font-weight: 900; font-size: 76px; line-height: 0.9; text-transform: uppercase; margin-top: 14px; }
+        .s14 .stp p { font-family: var(--f-mono); font-size: 21px; line-height: 1.45; margin-top: 18px; color: rgba(238,246,255,0.75); }
+
+        /* ===========================================
+           15 FAZIT — eiskalt, Stempel
+           =========================================== */
+        .s15 { background: linear-gradient(160deg, #0a2240, #06070b 70%) !important; }
+        .s15 .b1 { width: 1000px; height: 700px; right: -200px; top: -150px; background: radial-gradient(circle, #8fe3ff, #2f5bff 50%, transparent 72%); opacity: 0.5; }
+        .s15 .h { position: absolute; left: var(--pad); top: 140px; font-size: 300px; }
+        .s15 .h2 { position: absolute; left: var(--pad); top: 400px; font-size: 140px; }
+        .stamp { position: absolute; right: 230px; top: 190px; border: 8px solid var(--yellow); color: var(--yellow); padding: 18px 30px; transform: rotate(-9deg); text-align: center; }
+        .stamp .huge { font-size: 92px; line-height: 0.9; }
+        .stamp .lbl { font-weight: 800; margin-top: 6px; }
+        .slide.visible .stamp { animation: stamp 0.5s cubic-bezier(.3,1.6,.5,1) 0.9s both; }
+        @keyframes stamp { from { transform: rotate(-9deg) scale(2.2); opacity: 0; } to { transform: rotate(-9deg) scale(1); opacity: 1; } }
+        .s15 .next { position: absolute; left: var(--pad); right: 150px; top: 690px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+        .s15 .nx { border-left: 6px solid var(--ice); padding-left: 26px; }
+        .s15 .nx .lbl { color: var(--ice); font-size: 17px; }
+        .s15 .nx h3 { font-weight: 900; font-size: 62px; text-transform: uppercase; line-height: 0.95; margin-top: 8px; }
+        .s15 .nx p { font-family: var(--f-mono); font-size: 19px; line-height: 1.45; margin-top: 12px; color: rgba(238,246,255,0.75); }
+
+        /* ===========================================
+           16 FRAGEN — Kühlkette geschlossen
+           =========================================== */
+        .s16 { background: var(--ice) !important; color: var(--void); }
+        .s16 .t { position: absolute; left: 90px; top: 170px; font-size: 470px; letter-spacing: -0.01em; }
+        .s16 .mill { position: absolute; right: 170px; bottom: 130px; width: 420px; height: 420px; color: var(--void); }
+        .s16 .ok { position: absolute; left: var(--pad); top: 760px; font-family: var(--f-mono); font-weight: 800; font-size: 30px; text-transform: uppercase; letter-spacing: 0.06em; }
+        .s16 .ok span { background: var(--void); color: var(--ice); padding: 6px 14px; margin-right: 14px; }
+        .s16 .team { position: absolute; left: var(--pad); bottom: 100px; display: flex; gap: 46px; font-family: var(--f-mono); font-weight: 600; font-size: 20px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+        /* ===========================================
+           STEUERUNG AUSSERHALB DER BÜHNE + EDITOR
+           =========================================== */
+        .progress { position: fixed; left: 0; top: 0; height: 5px; background: var(--heat); z-index: 1000; transition: width 0.5s var(--ease); }
+        .deck-controls { display: none; font-family: 'Martian Mono', monospace; font-size: 11px; letter-spacing: 0.15em; color: rgba(238,246,255,0.35); }
+        .edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
+        .edit-toggle { position: fixed; top: 18px; left: 18px; z-index: 10001; width: 44px; height: 44px; border: 2px solid var(--yellow); background: var(--void); color: var(--yellow); font-size: 18px; cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+        .edit-toggle.active { background: var(--yellow); color: var(--void); }
+        body.editing [contenteditable="true"] { outline: 2px dashed var(--yellow); outline-offset: 6px; }
+    </style>
+</head>
+<body>
+    <div class="progress" id="progress"></div>
+    <div class="edit-hotzone"></div>
+    <button class="edit-toggle" id="editToggle" title="Bearbeiten (E)" aria-label="Bearbeitungsmodus umschalten">✎</button>
+
+    <!-- === SVG-SYMBOL: SAILWIND-Rotor (Segel einer historischen Windmühle) === -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <symbol id="rotor" viewBox="-300 -300 600 600">
+                <g stroke="currentColor" stroke-width="6" stroke-linejoin="round" fill="none">
+                    <g id="spar"><line x1="0" y1="0" x2="0" y2="-290"/><path d="M0 -70 L0 -290 L84 -252 Z" fill="currentColor" fill-opacity="0.9"/></g>
+                    <use href="#spar" transform="rotate(45)"/><use href="#spar" transform="rotate(90)"/><use href="#spar" transform="rotate(135)"/>
+                    <use href="#spar" transform="rotate(180)"/><use href="#spar" transform="rotate(225)"/><use href="#spar" transform="rotate(270)"/><use href="#spar" transform="rotate(315)"/>
+                    <circle r="30" fill="currentColor"/>
+                </g>
+            </symbol>
+        </defs>
+    </svg>
+
+    <div class="deck-viewport">
+        <main class="deck-stage" id="deckStage">
+
+            <!-- === HUD: Datenlogger. Temperatur fällt von Folie zu Folie === -->
+            <div class="hud" id="hud">
+                <div class="tl"><b>SAILCOOL//</b><span class="rec"><i></i>REC</span><span id="hudSec">Problem</span></div>
+                <div class="tr"><span class="lbl" style="font-size:14px">Kühlraum-Temp.</span><span class="temp" id="hudTemp">+34,0 °C</span></div>
+                <div class="thermo"><div class="mk" id="hudMk"></div><div class="lbl" style="top:-4px">45°</div><div class="lbl" style="bottom:-6px">0°</div></div>
+                <div class="pg" id="hudPg">01 / 16</div>
+            </div>
+
+            <!-- === 01 TITEL ===
+                 Sprecher: Begrüßung, Team, Thema in einem Satz. -->
+            <section class="slide s01 corrugated active" data-temp="34" data-sec="Abschlusspräsentation" aria-label="Titel">
+                <div class="blob b1"></div>
+                <svg class="mill" viewBox="-300 -300 600 600" aria-hidden="true"><g class="rotor"><use href="#rotor" x="-300" y="-300" width="600" height="600"/></g></svg>
+                <div class="huge stencil t1 rv l d1">SAILCOOL</div>
+                <div class="huge outline t2 rv l d2">VILLAGE</div>
+                <div class="claim rv d3"><b>1 Energiesystem. 2 Grundbedürfnisse.</b><br>Markt-, Potenzial- & Wettbewerbsanalyse · ländliches Indien</div>
+                <div class="ticker"><div class="run">
+                    <span>Nachernteverluste 57.004 Crore INR</span><span>Obst bis 15 %</span><span>Gemüse bis 12 %</span><span>&lt; 20 h Strom / Tag</span><span>Wind + PV + Speicher</span><span>AGRI · MED</span><span>Ziel: +4 °C</span>
+                    <span>Nachernteverluste 57.004 Crore INR</span><span>Obst bis 15 %</span><span>Gemüse bis 12 %</span><span>&lt; 20 h Strom / Tag</span><span>Wind + PV + Speicher</span><span>AGRI · MED</span><span>Ziel: +4 °C</span>
+                </div></div>
+                <div class="team">Feuerbacher · Walter · Fleig · Ammann · Ainous — HTWG Konstanz · Investitionsgütermarketing</div>
+            </section>
+
+            <!-- === 02 PROBLEM ===
+                 Sprecher: Indien ist Nr. 2 weltweit bei Obst & Gemüse – und ein großer Teil verdirbt. -->
+            <section class="slide s02" data-temp="41.2" data-sec="Problem" data-ink="dark" aria-label="Problem">
+                <div class="thermal"></div>
+                <div class="huge num rv z d1"><span class="count" data-to="5.7" data-dec="1">0</span></div>
+                <div class="huge unit rv r d2">Mrd. €<small>pro Jahr</small></div>
+                <div class="cap rv d3">verderben in Indien nach der Ernte. Ungekühlt.</div>
+                <div class="chips rv d4"><span class="chip">Obst: bis 15 % weg</span><span class="chip">Gemüse: bis 12 % weg</span></div>
+                <div class="src" style="color:rgba(238,246,255,0.7)">Lok Sabha 2024 · Rajya Sabha 2023</div>
+            </section>
+
+            <!-- === 03 URSACHE ===
+                 Sprecher: Kein absoluter Kapazitätsmangel – falsch verteilt, und Strom unzuverlässig. -->
+            <section class="slide s03" data-temp="38.5" data-sec="Problem" aria-label="Ursache">
+                <div class="huge h rv l d1">Kühlung am<br><span>falschen Ort.</span></div>
+                <div class="cols">
+                    <div class="c rv d2"><div class="huge n">8.815</div><p>Kühlhäuser · 40 Mio. t Kapazität</p></div>
+                    <div class="c rv d3"><div class="huge n heat-text">¾</div><p>davon Kartoffeln. Über die Hälfte in nur 2 Bundesstaaten.</p></div>
+                    <div class="c rv d4"><div class="huge n heat-text">&lt;20H</div><p>Strom pro Tag in mehreren ländlichen Bundesstaaten</p></div>
+                </div>
+                <div class="hazard"></div>
+                <div class="src">IANS 2026 · Rajya Sabha 2025</div>
+            </section>
+
+            <!-- === 04 IDEE ===
+                 Sprecher: Ein Energiesystem versorgt zwei Module. -->
+            <section class="slide s04" data-temp="26" data-sec="Die Idee" aria-label="Idee">
+                <div class="half agri corrugated">
+                    <div class="huge stencil vert rv l d1">AGRI</div>
+                    <div class="info rv d3"><b>Obst & Gemüse</b>weniger Verluste<br>bessere Preise</div>
+                </div>
+                <div class="half med corrugated">
+                    <div class="huge stencil vert rv r d1">MED</div>
+                    <div class="info rv d3"><b>Impfstoffe</b>sicher bei 2–10 °C<br>auch abgelegen</div>
+                </div>
+                <div class="center rv z d2"><div class="huge">1 Energiesystem<br>2 Bedürfnisse</div><div class="lbl">SAILCOOL VILLAGE · modular</div></div>
+            </section>
+
+            <!-- === 05 FUNKTION ===
+                 Sprecher: Wind füllt die Lücke der PV – nachts und im Monsun. SAILWIND kommt von der HTWG. -->
+            <section class="slide s05" data-temp="18" data-sec="So funktioniert's" aria-label="Funktion">
+                <div class="huge h rv l d1">Wind + Sonne = <span class="ice">Kälte</span></div>
+                <div class="rail">
+                    <svg class="line" viewBox="0 0 1660 80" preserveAspectRatio="none"><path d="M150 40 H1500"/></svg>
+                    <div class="nodes">
+                        <div class="nd rv d2"><div class="box"><svg width="230" height="230" viewBox="-300 -300 600 600" style="color:var(--snow)"><g class="rotor"><use href="#rotor" x="-300" y="-300" width="600" height="600"/></g></svg></div><div class="t">SAILWIND<span>Segelwindmühle</span></div></div>
+                        <div class="nd rv d3"><div class="box"><div class="huge heat-text">PV</div></div><div class="t">Photovoltaik<span>Solarstrom am Tag</span></div></div>
+                        <div class="nd rv d4"><div class="box"><div class="huge">AKKU</div></div><div class="t">Speicher<span>Batterie + EMS</span></div></div>
+                        <div class="nd k rv d5"><div class="box"><div class="huge stencil">+4°</div></div><div class="t">Kühlung<span>AGRI & MED</span></div></div>
+                    </div>
+                </div>
+                <div class="foot rv d6"><b>SAILWIND</b> — automatisierte Segelwindmühle nach historischem Vorbild, entwickelt an der HTWG Konstanz.</div>
+            </section>
+
+            <!-- === 06 FRAGE & HYPOTHESE ===
+                 Sprecher: Wir haben bewusst kritisch gefragt: Lohnt sich der Wind überhaupt? -->
+            <section class="slide s06" data-temp="15" data-sec="Fragestellung" aria-label="Forschungsfrage">
+                <div class="huge outline qm" style="-webkit-text-stroke:3px rgba(143,227,255,0.25)">?</div>
+                <div class="huge q rv l d1"><span class="lbl">Forschungsfrage</span>Wann besetzt SAILCOOL eine tragfähige Marktnische?</div>
+                <div class="warn rv d3"><div class="lbl">⚠ Hypothese</div><p>Wind lohnt sich <u>nicht überall</u> – nur wo viel Wind auf ein unzuverlässiges Netz trifft.</p></div>
+            </section>
+
+            <!-- === 07 METHODIK ===
+                 Sprecher: Kurz! Fünf Schritte, Befragung nur explorativ (n = 4). -->
+            <section class="slide s07" data-temp="13" data-sec="Methodik" aria-label="Methodik">
+                <div class="huge h rv l d1">5 Schritte. 1 Antwort.</div>
+                <div class="labels">
+                    <div class="tag rv d2"><div class="no">01</div><div class="bar"></div><h3>Desk Research</h3><p>Statistiken, Studien, Anbieterdaten</p></div>
+                    <div class="tag rv d3"><div class="no">02</div><div class="bar"></div><h3>Markt&shy;analyse</h3><p>Potenzial Top-down in 4 Stufen</p></div>
+                    <div class="tag rv d4"><div class="no">03</div><div class="bar"></div><h3>Wett&shy;bewerb</h3><p>Profile, Matrix, Five Forces</p></div>
+                    <div class="tag rv d5"><div class="no">04</div><div class="bar"></div><h3>Befragung</h3><p>4 indische Studierende</p></div>
+                    <div class="tag last rv d6"><div class="no">05</div><div class="bar"></div><h3>Synthese</h3><p>SWOT, Zielgruppe, Positionierung</p></div>
+                </div>
+            </section>
+
+            <!-- === 08 KLEINWIND ===
+                 Sprecher: Flächen = installierte Leistung. Indien ist der Punkt. Förderung 2017 ausgelaufen, PV billiger. -->
+            <section class="slide s08" data-temp="12" data-sec="Markt" data-ink="dark" aria-label="Kleinwind">
+                <div class="huge h rv l d1">Kleinwind in Indien? Fast nichts.</div>
+                <div class="sq cn rv z d2"><span>704 MW<small>China</small></span></div>
+                <div class="sq us rv z d3"><span>156 MW<small>USA</small></span></div>
+                <div class="sq in rv z d4"></div>
+                <div class="arrow rv d5">3–5 MW<small>Das ist Indien.</small><svg viewBox="0 0 180 60"><path d="M0 30 H170 M150 10 L172 30 L150 50" stroke="#06070b" stroke-width="7" fill="none"/></svg></div>
+                <div class="cost rv d4">1 kW Kleinwind: ab 80.000 INR<br>1 kW Photovoltaik: 40.000–70.000 INR<br>Förderung seit 2017 ausgelaufen.</div>
+                <div class="src">Fläche ∝ installierte Leistung · WRI India 2024 · CSTEP 2023</div>
+            </section>
+
+            <!-- === 09 MARKTPOTENZIAL ===
+                 Sprecher: Schriftgröße = Größenordnung. Von der Obergrenze runter auf ~30 Anlagen pro Jahr. -->
+            <section class="slide s09" data-temp="10" data-sec="Potenzial" aria-label="Marktpotenzial">
+                <div class="lbl h rv d1" style="color:var(--ice)">Marktpotenzial · Top-down</div>
+                <div class="stair">
+                    <div class="st a rv l d1"><div class="v">24,9 Mrd. €</div><div class="k"><b>A Theoretisch</b>ganze Kapazitätslücke</div></div>
+                    <div class="st b rv l d2"><div class="v">2,5 Mrd. €</div><div class="k"><b>B Dezentral</b>10 % · erste Meile</div></div>
+                    <div class="st c rv l d3"><div class="v">0,5 Mrd. €</div><div class="k"><b>C Windgeeignet</b>20 % davon</div></div>
+                    <div class="st d rv l d4"><div class="v">5 Mio. €</div></div>
+                </div>
+                <div class="ring rv z d5"></div>
+                <div class="note rv d6">≈ 30 Anlagen pro Jahr · 1 % in 10 Jahren</div>
+                <div class="src">Eigene Berechnung · 100 INR = 1 €</div>
+            </section>
+
+            <!-- === 10 WETTBEWERB ===
+                 Sprecher: Solare Kühlräume sind da und gut. Unser Unterschied: Strom auch nachts/Monsun. -->
+            <section class="slide s10" data-temp="9" data-sec="Wettbewerb" aria-label="Wettbewerb">
+                <div class="huge h rv l d1">Solar ist schon da.</div>
+                <div class="sub rv d2">Unser Vorsprung ist nur graduell: Strom auch nachts und im Monsun.</div>
+                <div class="big1200 rv d3">&gt;1.200<small>Ecofrost-Kühlräume hat Marktführer Ecozen installiert</small></div>
+                <div class="scope rv z d2">
+                    <div class="ax x">Dezentralität →</div><div class="ax y">Energieautonomie →</div>
+                    <div class="pt me l" style="left:76%; bottom:90%"><i></i>SAILCOOL</div>
+                    <div class="pt sol l" style="left:53%; bottom:76%"><i></i>Inficold</div>
+                    <div class="pt sol" style="left:76%; bottom:66%"><i></i>Ecofrost</div>
+                    <div class="pt sol" style="left:70%; bottom:52%"><i></i>CoolCrop</div>
+                    <div class="pt" style="left:42%; bottom:32%"><i></i>Diesel/Netz</div>
+                    <div class="pt" style="left:12%; bottom:22%"><i></i>Kühlhäuser</div>
+                    <div class="pt l" style="left:86%; bottom:9%"><i></i>Verdunstung</div>
+                </div>
+            </section>
+
+            <!-- === 11 PORTER ===
+                 Sprecher: Größte Gefahr: preissensible Kunden und billige Ersatzlösungen. -->
+            <section class="slide s11" data-temp="8" data-sec="Five Forces" aria-label="Porter">
+                <div class="huge h rv l d1">Druck: <span>mittel bis hoch</span></div>
+                <div class="rows">
+                    <div class="row rv d2"><div class="n">Abnehmer</div><div class="tube"><div class="grow-x" style="width:100%"></div></div><div class="r"><b>hoch</b>preissensibel</div></div>
+                    <div class="row rv d3"><div class="n">Substitute</div><div class="tube"><div class="grow-x" style="width:100%"></div></div><div class="r"><b>hoch</b>Verdunstung, Sofortverkauf</div></div>
+                    <div class="row rv d4"><div class="n">Rivalität</div><div class="tube"><div class="grow-x" style="width:62%"></div></div><div class="r"><b>mittel</b>wenige, etablierte Anbieter</div></div>
+                    <div class="row rv d5"><div class="n">Neue Anbieter</div><div class="tube"><div class="grow-x" style="width:62%"></div></div><div class="r"><b>mittel</b>Service & Förderung als Hürde</div></div>
+                    <div class="row rv d6"><div class="n">Lieferanten</div><div class="tube"><div class="grow-x" style="width:40%"></div></div><div class="r"><b>gering–mittel</b>Standardteile</div></div>
+                </div>
+            </section>
+
+            <!-- === 12 BEFRAGUNG ===
+                 Sprecher: Nur 4 Personen, keine Validierung – aber klare Hinweise. -->
+            <section class="slide s12" data-temp="7" data-sec="Befragung" aria-label="Befragung">
+                <div class="huge h rv l d1">4 Stimmen aus Indien</div>
+                <div class="grid">
+                    <div class="rv d2"><div class="f">3<sub>/4</sub></div><div class="t">Strom<br>unzuverlässig</div><div class="p">Bei Ausfall läuft meist der Dieselgenerator.</div></div>
+                    <div class="rv d3"><div class="f">4<sub>/4</sub></div><div class="t">Obst &<br>Gemüse</div><div class="p">profitieren am meisten von Kühlung.</div></div>
+                    <div class="rv d4"><div class="f">3<sub>/4</sub></div><div class="t">Würden<br>mehr zahlen</div><div class="p">für grüne Energie – aber Nutzen zählt zuerst.</div></div>
+                </div>
+                <div class="disclaimer rv d5">n = 4 · explorativ · nicht repräsentativ</div>
+            </section>
+
+            <!-- === 13 SWOT === -->
+            <section class="slide s13" data-temp="6" data-sec="SWOT" aria-label="SWOT">
+                <div class="q qs rv l d1"><div class="L">S</div><div class="in"><h3>Stärken</h3><ul><li>Hybrid: Wind + PV + Speicher</li><li>Modular: AGRI, MED, Größe</li><li>Weithin sichtbare Segeltechnik</li></ul></div></div>
+                <div class="q qw rv r d2"><div class="L">W</div><div class="in"><h3>Schwächen</h3><ul><li>Machbarkeit nicht nachgewiesen</li><li>Wind teurer je kW als PV</li><li>Keine Referenzen, kein Service</li></ul></div></div>
+                <div class="q qo rv l d3"><div class="L">O</div><div class="in"><h3>Chancen</h3><ul><li>Hohe Verluste, wachsender Markt</li><li>35–50 % Förderung (MIDH)</li><li>Erzeugerorganisationen</li></ul></div></div>
+                <div class="q qt rv r d4"><div class="L">T</div><div class="in"><h3>Risiken</h3><ul><li>Etablierte Solar-Konkurrenz</li><li>Preissensible Kunden</li><li>Strenge Zulassung für MED</li></ul></div></div>
+            </section>
+
+            <!-- === 14 STRATEGIE ===
+                 Sprecher: Fokus statt Gießkanne. Cooling-as-a-Service umgeht die hohe Anfangsinvestition. -->
+            <section class="slide s14" data-temp="5" data-sec="Markteintritt" aria-label="Strategie">
+                <div class="huge h rv l d1">Erst AGRI. <span>Dann MED.</span></div>
+                <div class="route">
+                    <div class="stp rv d2"><div class="no">1</div><div class="lbl">Zielgruppe</div><h3>Erzeuger&shy;organisationen</h3><p>bündeln Mengen, sind förderfähig, regeln den Zugang</p></div>
+                    <div class="stp rv d3"><div class="no">2</div><div class="lbl">Geschäftsmodell</div><h3>Cooling as a Service</h3><p>Gebühr pro Nutzung statt teurer Anschaffung</p></div>
+                    <div class="stp later rv d4"><div class="no">3</div><div class="lbl">Später</div><h3>Modul MED</h3><p>erst nach Feldtest und geklärter Zulassung</p></div>
+                </div>
+            </section>
+
+            <!-- === 15 FAZIT ===
+                 Sprecher: Hypothese gestützt + präzisiert (wenig Sonne/Monsun) – ohne Energiebilanz nicht bestätigt. -->
+            <section class="slide s15" data-temp="4.5" data-sec="Fazit" aria-label="Fazit">
+                <div class="blob b1"></div>
+                <div class="huge h rv l d1">Nische.</div>
+                <div class="huge outline h2 rv l d2">Kein Massenmarkt.</div>
+                <div class="stamp"><div class="huge">Hypothese<br>gestützt</div><div class="lbl">noch nicht bestätigt</div></div>
+                <div class="next">
+                    <div class="nx rv d3"><div class="lbl">Next 01</div><h3>Standort&shy;analyse</h3><p>Wo treffen Wind, schwaches Netz und wenig Sonne zusammen?</p></div>
+                    <div class="nx rv d4"><div class="lbl">Next 02</div><h3>Energie&shy;bilanz</h3><p>5-t-Modul: Wind + PV + Akku gegen reine PV rechnen</p></div>
+                    <div class="nx rv d5"><div class="lbl">Next 03</div><h3>Vor Ort fragen</h3><p>Landwirte und Erzeugerorganisationen in Indien</p></div>
+                </div>
+            </section>
+
+            <!-- === 16 FRAGEN === -->
+            <section class="slide s16" data-temp="4" data-sec="Ende" data-ink="dark" aria-label="Fragen">
+                <svg class="mill" viewBox="-300 -300 600 600" aria-hidden="true"><g class="rotor"><use href="#rotor" x="-300" y="-300" width="600" height="600"/></g></svg>
+                <div class="huge stencil t rv l d1">Fragen?</div>
+                <div class="ok rv d2"><span>+4,0 °C</span>Kühlkette geschlossen. Danke!</div>
+                <div class="team rv d3"><span>Sven Feuerbacher</span><span>Patricia Walter</span><span>Felix Fleig</span><span>David Ammann</span><span>Ilias Ainous</span></div>
+            </section>
+
+        </main>
+    </div>
+
+    <div class="deck-controls" id="pageNum">1 / 16</div>
+
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           Skalierung, Navigation, HUD-Temperatur
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.stage = document.getElementById('deckStage');
+                this.current = 0;
+                this.temp = parseFloat(this.slides[0].dataset.temp);
+                this.wheelLock = false;
+                this.setupStageScale();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupWheelNav();
+                const start = parseInt(location.hash.slice(1), 10);
+                this.showSlide(isNaN(start) ? 0 : start - 1);
+            }
+
+            setupStageScale() {
+                const scale = () => {
+                    const f = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+                    const x = (window.innerWidth - 1920 * f) / 2;
+                    const y = (window.innerHeight - 1080 * f) / 2;
+                    this.stage.style.transform = `translate(${x}px, ${y}px) scale(${f})`;
+                };
+                scale();
+                window.addEventListener('resize', scale);
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    if (document.body.classList.contains('editing')) return;
+                    if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); this.showSlide(this.current + 1); }
+                    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); this.showSlide(this.current - 1); }
+                    if (e.key === 'Home') this.showSlide(0);
+                    if (e.key === 'End') this.showSlide(this.slides.length - 1);
+                });
+            }
+
+            setupTouchNav() {
+                let startX = 0;
+                document.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+                document.addEventListener('touchend', (e) => {
+                    const dx = e.changedTouches[0].clientX - startX;
+                    if (Math.abs(dx) > 50) this.showSlide(this.current + (dx < 0 ? 1 : -1));
+                });
+            }
+
+            setupWheelNav() {
+                document.addEventListener('wheel', (e) => {
+                    if (this.wheelLock || Math.abs(e.deltaY) < 20) return;
+                    this.wheelLock = true;
+                    this.showSlide(this.current + (e.deltaY > 0 ? 1 : -1));
+                    setTimeout(() => (this.wheelLock = false), 900);
+                }, { passive: true });
+            }
+
+            showSlide(i) {
+                this.current = Math.max(0, Math.min(i, this.slides.length - 1));
+                const s = this.slides[this.current];
+                this.slides.forEach((el, n) => {
+                    el.classList.toggle('active', n === this.current);
+                    el.classList.toggle('visible', n === this.current);
+                });
+                const total = this.slides.length;
+                document.getElementById('progress').style.width = ((this.current + 1) / total * 100) + '%';
+                document.getElementById('pageNum').textContent = `${this.current + 1} / ${total}`;
+                history.replaceState(null, '', '#' + (this.current + 1));
+                this.updateHud(s, total);
+                this.runCounters(s);
+            }
+
+            /* HUD: Temperatur zählt zum Zielwert der Folie, Marker wandert am Thermometer */
+            updateHud(s, total) {
+                const hud = document.getElementById('hud');
+                hud.classList.toggle('dark-ink', s.dataset.ink === 'dark');
+                document.getElementById('hudSec').textContent = s.dataset.sec || '';
+                document.getElementById('hudPg').textContent = String(this.current + 1).padStart(2, '0') + ' / ' + total;
+                const target = parseFloat(s.dataset.temp), from = this.temp, t0 = performance.now();
+                const el = document.getElementById('hudTemp');
+                const color = target > 25 ? 'var(--orange)' : target > 10 ? 'var(--snow)' : 'var(--ice)';
+                el.style.color = s.dataset.ink === 'dark' ? 'var(--void)' : color;
+                cancelAnimationFrame(this.tRaf);
+                const step = (t) => {
+                    const p = Math.min((t - t0) / 900, 1), v = from + (target - from) * (1 - Math.pow(1 - p, 3));
+                    el.textContent = '+' + v.toFixed(1).replace('.', ',') + ' °C';
+                    if (p < 1) this.tRaf = requestAnimationFrame(step);
+                };
+                this.tRaf = requestAnimationFrame(step);
+                this.temp = target;
+                document.getElementById('hudMk').style.bottom = `calc(${(target / 45) * 100}% - 3px)`;
+            }
+
+            runCounters(slide) {
+                slide.querySelectorAll('.count').forEach((el) => {
+                    const to = parseFloat(el.dataset.to), dec = parseInt(el.dataset.dec || '0', 10), t0 = performance.now();
+                    const tick = (t) => {
+                        const p = Math.min((t - t0) / 1400, 1);
+                        el.textContent = (to * (1 - Math.pow(1 - p, 3))).toFixed(dec).replace('.', ',');
+                        if (p < 1) requestAnimationFrame(tick);
+                    };
+                    requestAnimationFrame(tick);
+                });
+            }
+        }
+
+        /* ===========================================
+           INLINE-EDITOR — E = an/aus, Strg+S = speichern
+           =========================================== */
+        class InlineEditor {
+            constructor() {
+                this.isActive = false;
+                this.key = 'deck-edits-v2-' + location.pathname;
+                this.targets = document.querySelectorAll('.slide h3, .slide p, .slide li, .slide .huge, .slide .lbl, .slide .t, .slide .k, .slide .cap, .slide .chip, .slide .r, .slide .sub, .slide .note, .slide .team, .slide .claim');
+                this.restore();
+            }
+            toggleEditMode() {
+                this.isActive = !this.isActive;
+                document.body.classList.toggle('editing', this.isActive);
+                document.getElementById('editToggle').classList.toggle('active', this.isActive);
+                this.targets.forEach((el) => el.setAttribute('contenteditable', this.isActive ? 'true' : 'false'));
+                if (!this.isActive) this.save();
+            }
+            save() { try { localStorage.setItem(this.key, JSON.stringify([...this.targets].map((el) => el.innerHTML))); } catch (e) {} }
+            restore() {
+                try {
+                    const data = JSON.parse(localStorage.getItem(this.key) || 'null');
+                    if (data && data.length === this.targets.length) this.targets.forEach((el, i) => (el.innerHTML = data[i]));
+                } catch (e) {}
+            }
+            download() {
+                const clone = document.documentElement.cloneNode(true);
+                clone.querySelectorAll('[contenteditable]').forEach((el) => el.removeAttribute('contenteditable'));
+                clone.querySelector('body').classList.remove('editing');
+                const blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], { type: 'text/html' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob); a.download = 'sailcool-praesentation.html'; a.click();
+            }
+        }
+
+        const deck = new SlidePresentation();
+        const editor = new InlineEditor();
+
+        const hotzone = document.querySelector('.edit-hotzone');
+        const editToggle = document.getElementById('editToggle');
+        let hideTimeout = null;
+        const hideLater = () => { hideTimeout = setTimeout(() => { if (!editor.isActive) editToggle.classList.remove('show'); }, 400); };
+        editToggle.addEventListener('click', () => editor.toggleEditMode());
+        hotzone.addEventListener('click', () => editor.toggleEditMode());
+        hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); editToggle.classList.add('show'); });
+        hotzone.addEventListener('mouseleave', hideLater);
+        editToggle.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+        editToggle.addEventListener('mouseleave', hideLater);
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'e' || e.key === 'E') && e.target.getAttribute('contenteditable') !== 'true') editor.toggleEditMode();
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); editor.save(); editor.download(); }
+        });
+    </script>
+</body>
+</html>
