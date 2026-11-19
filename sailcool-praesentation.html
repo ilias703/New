@@ -594,6 +594,49 @@
         .s13c .sx-k { font-family: var(--f-display); font-weight: 700; font-size: 24px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-mute); }
         .s13c .sx-t { font-family: var(--f-display); font-weight: 800; font-size: 64px; letter-spacing: -0.03em; line-height: 1.02; margin-top: 18px; }
 
+
+        /* ===========================================
+           FILM-LOOK: Kinobalken-Eröffnung, Kamerafahrten zwischen Folien,
+           Kapitelkarten, langsamer Kamera-Zoom, Vignette
+           =========================================== */
+        .vignette { position: absolute; inset: 0; z-index: 55; pointer-events: none;
+            background: radial-gradient(ellipse 75% 70% at 50% 48%, transparent 55%, rgba(2, 18, 32, 0.42) 100%); }
+        .lbar { position: absolute; left: 0; right: 0; height: 540px; background: #02121f; z-index: 70; pointer-events: none;
+            transition: transform 1.6s cubic-bezier(0.7, 0, 0.2, 1); }
+        .lbar.top { top: 0; } .lbar.bot { bottom: 0; }
+        body.opened .lbar.top { transform: translateY(-420px); }
+        body.opened .lbar.bot { transform: translateY(420px); }
+        body.rolled .lbar { transform: translateY(-100%) !important; }
+        body.rolled .lbar.bot { transform: translateY(100%) !important; }
+        body.rolled .lbar { transition-duration: 1.1s; }
+
+        /* Kamerafahrt: neue Folie fährt heran, alte zieht zurück */
+        .slide.leaving { visibility: visible !important; opacity: 1; z-index: 2 !important; pointer-events: none; }
+        .slide.cam-in-f  { animation: camInF 1.0s cubic-bezier(0.2, 0.7, 0.2, 1) both, drift 26s linear 1.0s forwards; }
+        .slide.cam-in-b  { animation: camInB 1.0s cubic-bezier(0.2, 0.7, 0.2, 1) both, drift 26s linear 1.0s forwards; }
+        .slide.cam-out-f { animation: camOutF 0.9s cubic-bezier(0.5, 0, 0.6, 1) both; }
+        .slide.cam-out-b { animation: camOutB 0.9s cubic-bezier(0.5, 0, 0.6, 1) both; }
+        @keyframes camInF  { from { opacity: 0; transform: scale(1.12); filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+        @keyframes camInB  { from { opacity: 0; transform: scale(0.9);  filter: blur(10px); } to { opacity: 1; transform: none; filter: none; } }
+        @keyframes camOutF { from { opacity: 1; transform: none; filter: none; } to { opacity: 0; transform: scale(0.92); filter: blur(8px); } }
+        @keyframes camOutB { from { opacity: 1; transform: none; filter: none; } to { opacity: 0; transform: scale(1.1);  filter: blur(8px); } }
+        @keyframes drift { from { transform: none; } to { transform: scale(1.025); } }
+
+        /* Kapitelkarte */
+        .chapter { position: absolute; inset: 0; z-index: 65; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: radial-gradient(ellipse at 50% 45%, #0d5788, #052b45 75%); color: #f2f2ee; opacity: 0; pointer-events: none; }
+        .chapter .rom { font-family: var(--f-serif); font-style: italic; font-weight: 500; font-size: 220px; line-height: 1; color: var(--sky); }
+        .chapter .ttl { font-family: var(--f-display); font-weight: 800; font-size: 96px; letter-spacing: -0.03em; margin-top: 18px; }
+        .chapter .ln { width: 0; height: 2px; background: #a9c46c; margin-top: 30px; }
+        .chapter.show { animation: chap 1.5s ease both; }
+        .chapter.show .rom { animation: chapRise 1.5s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+        .chapter.show .ttl { animation: chapRise 1.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.12s both; }
+        .chapter.show .ln { animation: chapLine 1.5s cubic-bezier(0.2, 0.7, 0.2, 1) 0.2s both; }
+        @keyframes chap { 0% { opacity: 0; } 15% { opacity: 1; } 72% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes chapRise { 0% { opacity: 0; transform: translateY(40px); letter-spacing: 0.02em; } 30% { opacity: 1; } 75% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-20px); } }
+        @keyframes chapLine { 0% { width: 0; } 50% { width: 360px; } 100% { width: 360px; opacity: 0; } }
+        @media (prefers-reduced-motion: reduce) { .slide[class*="cam-"] { animation: none !important; } .chapter.show { animation-duration: 0.01ms !important; } }
+
         /* ===========================================
            STEUERUNG + EDITOR (außerhalb der Bühne)
            =========================================== */
@@ -627,6 +670,10 @@
 
     <div class="deck-viewport">
         <main class="deck-stage" id="deckStage">
+            <!-- Film-Ebenen: Vignette, Kinobalken, Kapitelkarte -->
+            <div class="vignette"></div>
+            <div class="lbar top"></div><div class="lbar bot"></div>
+            <div class="chapter" id="chapter"><div class="rom"></div><div class="ttl"></div><div class="ln"></div></div>
 
             <!-- === 01 TITEL ===
                  Sprecher: Begrüßung, Team, Thema in einem Satz. -->
@@ -1100,14 +1147,41 @@
                 }, { passive: true });
             }
             showSlide(i) {
-                this.current = Math.max(0, Math.min(i, this.slides.length - 1));
-                this.slides.forEach((s, n) => {
-                    s.classList.toggle('active', n === this.current);
-                    s.classList.toggle('visible', n === this.current);
-                });
+                const prev = this.current, next = Math.max(0, Math.min(i, this.slides.length - 1));
+                const first = !this.started; this.started = true;
+                if (!first && next === prev) return;
+                const fwd = next >= prev, from = this.slides[prev], to = this.slides[next];
+                this.current = next;
+                const CAM = ['cam-in-f', 'cam-in-b', 'cam-out-f', 'cam-out-b', 'leaving'];
+                this.slides.forEach((s, n) => { if (n !== next && n !== prev) { s.classList.remove('active', 'visible', ...CAM); } });
+                /* alte Folie zieht zurück */
+                if (!first && from) {
+                    from.classList.remove('active', 'visible', 'cam-in-f', 'cam-in-b');
+                    from.classList.add('leaving', fwd ? 'cam-out-f' : 'cam-out-b');
+                    clearTimeout(from._lt); from._lt = setTimeout(() => from.classList.remove('leaving', 'cam-out-f', 'cam-out-b'), 950);
+                }
+                /* Kapitelkarte beim Vorwärtswechsel in ein neues Kapitel */
+                const rom = to.dataset.roman, chapterNew = !first && fwd && rom && rom !== (from && from.dataset.roman);
+                const reveal = () => {
+                    to.classList.remove('cam-in-f', 'cam-in-b', 'leaving', 'cam-out-f', 'cam-out-b'); void to.offsetWidth;
+                    to.classList.add('active', 'visible', fwd ? 'cam-in-f' : 'cam-in-b');
+                    this.runCounters(to);
+                };
+                clearTimeout(this._ct);
+                if (chapterNew) {
+                    const ch = document.getElementById('chapter');
+                    ch.querySelector('.rom').textContent = rom;
+                    ch.querySelector('.ttl').textContent = (to.dataset.meta || '').split(' · ')[0];
+                    ch.classList.remove('show'); void ch.offsetWidth; ch.classList.add('show');
+                    to.classList.add('active');
+                    this._ct = setTimeout(reveal, 1050);
+                } else reveal();
+                if (first) {                                                       // Kinobalken öffnen, sobald alles geladen ist
+                    const open = () => { setTimeout(() => document.body.classList.add('opened'), 300); setTimeout(() => document.body.classList.add('rolled'), 2000); };
+                    if (document.readyState === 'complete') open(); else window.addEventListener('load', open, { once: true });
+                }
                 document.getElementById('progress').style.width = ((this.current + 1) / this.slides.length * 100) + '%';
                 history.replaceState(null, '', '#' + (this.current + 1));
-                this.runCounters(this.slides[this.current]);
             }
             runCounters(slide) {
                 slide.querySelectorAll('.count').forEach((el) => {
