@@ -1940,7 +1940,7 @@
                         const gr = x.createRadialGradient(32, 32, 0, 32, 32, 32); gr.addColorStop(0, 'rgba(1,10,20,1)'); gr.addColorStop(0.5, 'rgba(1,10,20,0.55)'); gr.addColorStop(1, 'rgba(1,10,20,0)');
                         x.fillStyle = gr; x.fillRect(0, 0, 64, 64); return new T.CanvasTexture(c); })();
                     const shadowGeo = new T.PlaneGeometry(96, 20);
-                    /* Symbole: 0 = Glühbirne flackert und geht aus, 1 = Tomate in der Hand, 2 = Münze fällt herab */
+                    /* Symbole: 0 = Glühbirne flackert und geht aus, 1 = Tomate in der Hand, 2 = Geldbündel fällt herab */
                     const bulbMat = () => new T.MeshStandardMaterial({ color: 0xfff2b0, emissive: 0xffc94a, emissiveIntensity: 1, roughness: 0.3 });
                     const tomatoMat = new T.MeshStandardMaterial({ color: 0xd9483b, roughness: 0.35 }), leafMat = new T.MeshStandardMaterial({ color: 0x556b2f, roughness: 0.6 });
                     const coinMat = new T.MeshStandardMaterial({ color: 0xe9b94a, roughness: 0.25, metalness: 0.7 });
@@ -1964,8 +1964,20 @@
                                 sym.position.set(24, 44, 22); g.add(sym);
                             }
                             if (on && col === 2) {
-                                sym = new T.Group(); const c = new T.Mesh(new T.CylinderGeometry(11, 11, 3, 32), coinMat); c.rotation.x = Math.PI / 2; sym.add(c);
-                                sym.position.set(0, 300, 0); g.add(sym);
+                                /* Geldbündel: gestapelte Scheine mit Banderole */
+                                sym = new T.Group();
+                                const billTex = (() => { const c = document.createElement('canvas'); c.width = 128; c.height = 64; const x = c.getContext('2d');
+                                    x.fillStyle = '#4f8a3c'; x.fillRect(0, 0, 128, 64); x.strokeStyle = '#a9d48f'; x.lineWidth = 4; x.strokeRect(6, 6, 116, 52);
+                                    x.fillStyle = '#a9d48f'; x.beginPath(); x.arc(64, 32, 13, 0, Math.PI * 2); x.fill();
+                                    x.fillStyle = '#4f8a3c'; x.font = 'bold 20px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('₹', 64, 33);
+                                    const t = new T.CanvasTexture(c); t.encoding = T.sRGBEncoding; return t; })();
+                                const billMat = new T.MeshStandardMaterial({ map: billTex, roughness: 0.65 }), edgeMat = new T.MeshStandardMaterial({ color: 0xd8e6c8, roughness: 0.8 });
+                                for (let k = 0; k < 5; k++) {
+                                    const bill = new T.Mesh(new T.BoxGeometry(38, 1.8, 19), [edgeMat, edgeMat, billMat, billMat, edgeMat, edgeMat]);
+                                    bill.position.set((k % 2) * 1.2 - 0.6, k * 1.9, (k % 3) * 0.7 - 0.7); bill.rotation.y = (k - 2) * 0.035; sym.add(bill);
+                                }
+                                const band = new T.Mesh(new T.BoxGeometry(7, 10.4, 19.8), new T.MeshStandardMaterial({ color: 0xe9b94a, roughness: 0.45, metalness: 0.2 })); band.position.y = 3.8; sym.add(band);
+                                sym.rotation.x = 0.75; sym.position.set(0, 300, 0); g.add(sym);
                             }
                             const sh = new T.Mesh(shadowGeo, new T.MeshBasicMaterial({ map: shadowTex, transparent: true, depthWrite: false, opacity: on ? 1 : 0.45 }));
                             sh.position.z = -40; v.scene.add(sh);
@@ -2014,10 +2026,10 @@
                                 f.sym.rotation.z = Math.sin(s * 2 + f.i) * 0.1;
                             } else if (f.col === 1) {                           // Tomate: leicht wippen
                                 f.sym.position.y = 44 + Math.sin(s * 2.2 + f.i) * 1.5;
-                            } else {                                            // Münze fällt auf den Kopf und dreht sich
+                            } else {                                            // Geldbündel fällt auf den Kopf und wiegt sich
                                 const fall = ease((t - 0.5) / 0.6), bounce = fall >= 1 ? Math.abs(Math.sin(Math.min(1, (t - 1.1) / 0.4) * Math.PI)) * 8 * Math.max(0, 1 - (t - 1.1) / 0.4) : 0;
-                                f.sym.position.y = 300 - (300 - 112) * fall + bounce;
-                                f.sym.rotation.y = Math.sin(s * 1.6 + f.i) * 0.9;
+                                f.sym.position.y = 300 - (300 - 106) * fall + bounce;
+                                f.sym.rotation.y = 0.4 + Math.sin(s * 1.1 + f.i) * 0.35;
                             }
                         });
                     } });
