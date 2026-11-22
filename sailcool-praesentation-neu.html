@@ -1805,22 +1805,50 @@
                     const wallM = [0xe9dcc4, 0xdccdb0, 0xf0e6d2].map((c) => new T.MeshStandardMaterial({ color: new T.Color(c).convertSRGBToLinear(), roughness: 0.9 }));
                     const roofM = new T.MeshStandardMaterial({ color: new T.Color(0xb5532f).convertSRGBToLinear(), roughness: 0.8 });
                     const doorM = new T.MeshStandardMaterial({ color: new T.Color(0x5b3a24).convertSRGBToLinear(), roughness: 0.8 });
+                    const frameM = new T.MeshStandardMaterial({ color: new T.Color(0xf6f1e6).convertSRGBToLinear(), roughness: 0.7 });
+                    const glassM = new T.MeshStandardMaterial({ color: new T.Color(0x6f8fa8).convertSRGBToLinear(), roughness: 0.25, metalness: 0.3 });
+                    const plinthM = new T.MeshStandardMaterial({ color: new T.Color(0x9c8a72).convertSRGBToLinear(), roughness: 0.95 });
+                    const roofDarkM = new T.MeshStandardMaterial({ color: new T.Color(0x8e3d22).convertSRGBToLinear(), roughness: 0.85 });
+                    const screenX = (sx, z) => { let lo = -40, hi = 40; for (let q = 0; q < 40; q++) { const m = (lo + hi) / 2; if ((prj(m, 0, z).x + 1) / 2 < sx) lo = m; else hi = m; } return (lo + hi) / 2; };
+                    const groundUnder = (x, z, w, d) => { let lo = Infinity, hi = -Infinity; for (let i = -1; i <= 1; i += 0.25) for (let j = -1; j <= 1; j += 0.25) { const y = hillY(x + i * w / 2, z + j * d / 2); lo = Math.min(lo, y); hi = Math.max(hi, y); } return lo + (hi - lo) * 0.62; };   // leicht über Mitte: kurzer Sockel sichtbar, nichts schwebt
+                    const win = (W, H) => { const g = new T.Group(); const f = box(W + 0.03 * W * 6, H + 0.03 * W * 6, 0.012, frameM); g.add(f);
+                        const gl = box(W, H, 0.014, glassM); gl.position.z = 0.002; g.add(gl);
+                        const bar = box(W * 0.08, H, 0.016, frameM); bar.position.z = 0.003; g.add(bar); const bar2 = box(W, H * 0.08, 0.016, frameM); bar2.position.z = 0.003; g.add(bar2); return g; };
                     const hut = (sx, dz, sc, k, rot) => {
-                        const z = ZT + dz, x = (() => { let lo = -40, hi = 40; for (let q = 0; q < 40; q++) { const m = (lo + hi) / 2; if ((prj(m, 0, z).x + 1) / 2 < sx) lo = m; else hi = m; } return (lo + hi) / 2; })();
-                        const h = new T.Group(), w = 0.55 * sc, d = 0.45 * sc, ht = 0.34 * sc;
-                        const body = box(w, ht, d, wallM[k % 3]); body.position.y = ht / 2; h.add(body);
-                        const roof = new T.Mesh(new T.ConeGeometry(Math.max(w, d) * 0.78, 0.26 * sc, 4), roofM); roof.rotation.y = Math.PI / 4; roof.scale.set(1, 1, d / w); roof.position.y = ht + 0.13 * sc; h.add(roof);
-                        const door = box(0.11 * sc, 0.2 * sc, 0.01, doorM); door.position.set(-w * 0.18, 0.1 * sc, d / 2 + 0.006); h.add(door);
-                        h.position.set(x, ground(x, z) - 0.02, z); h.rotation.y = rot; v.scene.add(h);
+                        const z = ZT + dz, x = screenX(sx, z);
+                        const h = new T.Group(), w = 0.58 * sc, d = 0.46 * sc, ht = 0.34 * sc;
+                        // Sockel reicht in den Boden, damit am Hang nichts schwebt
+                        const plinth = box(w * 1.02, 1.2 * sc, d * 1.02, plinthM); plinth.position.y = -0.6 * sc + 0.04 * sc; h.add(plinth);
+                        const body = box(w, ht, d, wallM[k % 3]); body.position.y = 0.04 * sc + ht / 2; h.add(body);
+                        // Satteldach mit Überstand (Prisma), First quer zur Front
+                        // Giebel zeigt nach vorn: Dreiecksfläche in Wandfarbe, Dachflächen in Ziegelrot mit Überstand
+                        const rh = 0.26 * sc, gw = w * 1.0;
+                        const tri = new T.Shape(); tri.moveTo(-gw / 2, 0); tri.lineTo(gw / 2, 0); tri.lineTo(0, rh); tri.closePath();
+                        const gg = new T.ExtrudeGeometry(tri, { depth: d, bevelEnabled: false }); gg.translate(0, 0, -d / 2);
+                        const gable = new T.Mesh(gg, wallM[k % 3]); gable.position.y = 0.04 * sc + ht; h.add(gable);
+                        const slope = Math.atan2(rh, gw / 2), sl = Math.hypot(rh, gw / 2) * 1.16, L = d * 1.2;
+                        [-1, 1].forEach((sg) => {
+                            const pl = box(sl, 0.035 * sc, L, roofM);
+                            pl.position.set(sg * gw / 4 * 1.0, 0.04 * sc + ht + rh / 2 + 0.012 * sc, 0); pl.rotation.z = -sg * slope; h.add(pl);
+                        });
+                        const ridge = box(0.04 * sc, 0.04 * sc, L * 1.01, roofDarkM); ridge.position.y = 0.04 * sc + ht + rh + 0.01 * sc; h.add(ridge);
+                        // Tür + Fenster an der Front
+                        const df = box(0.15 * sc, 0.24 * sc, 0.012, frameM); df.position.set(-w * 0.2, 0.04 * sc + 0.12 * sc, d / 2 + 0.005); h.add(df);
+                        const door = box(0.12 * sc, 0.22 * sc, 0.016, doorM); door.position.set(-w * 0.2, 0.04 * sc + 0.11 * sc, d / 2 + 0.008); h.add(door);
+                        const w1 = win(0.11 * sc, 0.1 * sc); w1.position.set(w * 0.2, 0.04 * sc + ht * 0.58, d / 2 + 0.006); h.add(w1);
+                        const w2 = win(0.09 * sc, 0.09 * sc); w2.position.set(w / 2 + 0.006, 0.04 * sc + ht * 0.58, 0); w2.rotation.y = Math.PI / 2; h.add(w2);
+                        h.position.set(x, groundUnder(x, z, w, d) - 0.01 * sc, z); h.rotation.y = rot; v.scene.add(h);
                     };
                     const station = (sx, dz, sc) => {
-                        const z = ZT + dz, x = (() => { let lo = -40, hi = 40; for (let q = 0; q < 40; q++) { const m = (lo + hi) / 2; if ((prj(m, 0, z).x + 1) / 2 < sx) lo = m; else hi = m; } return (lo + hi) / 2; })();
+                        const z = ZT + dz, x = screenX(sx, z);
                         const st = new T.Group(), w = 0.8 * sc, d = 0.42 * sc, ht = 0.36 * sc;
+                        const base = box(w * 1.02, 1.2 * sc, d * 1.02, plinthM); base.position.y = -0.6 * sc; st.add(base);
+                        const sd = box(0.13 * sc, 0.25 * sc, 0.014, new T.MeshStandardMaterial({ color: 0xc9cfd4, roughness: 0.5, metalness: 0.4 })); sd.position.set(-w * 0.25, 0.125 * sc, d / 2 + 0.008); st.add(sd);
                         const c = box(w, ht, d, new T.MeshStandardMaterial({ color: 0xf4f4f0, roughness: 0.5 })); c.position.y = ht / 2; st.add(c);
                         const fan = box(0.16 * sc, 0.12 * sc, 0.01, new T.MeshStandardMaterial({ color: 0x8a96a3, roughness: 0.5 })); fan.position.set(w * 0.28, ht * 0.62, d / 2 + 0.006); st.add(fan);
                         const pv = new T.Mesh(new T.BoxGeometry(w * 1.1, 0.02 * sc, d * 1.25), [M.metal, M.metal, new T.MeshStandardMaterial({ map: panelTexture(), roughness: 0.3, metalness: 0.3 }), M.metal, M.metal, M.metal]);
                         pv.position.y = ht + 0.08 * sc; pv.rotation.x = 0.25; st.add(pv);
-                        st.position.set(x, ground(x, z) - 0.02, z); st.rotation.y = -0.35; v.scene.add(st);
+                        st.position.set(x, groundUnder(x, z, w, d) - 0.01 * sc, z); st.rotation.y = -0.35; v.scene.add(st);
                     };
                     const HS = SC * 3.6;                                             // Haushöhe ≈ 1/3 der Windradhöhe (wie auf den Fotos)
                     if (kind === 'title') {
