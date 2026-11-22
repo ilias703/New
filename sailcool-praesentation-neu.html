@@ -736,6 +736,16 @@
 
         /* Inhaltliche Überarbeitung */
         /* Folie 7: schrittweise aufdecken – Klick 1 Frage, Klick 2 Hypothese, Klick 3 Methodik */
+        /* Fokus: das gerade Besprochene ist voll sichtbar und etwas größer, alles davor verblasst */
+        .s06m .q, .s06m .hyp2 { transform-origin: left center; }
+        .s06m .q > *, .s06m .hyp2 { transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) !important; }
+        .s06m.visible[data-step="1"] .q blockquote { transform: scale(1.06); transform-origin: left top; }
+        .s06m.visible[data-step="2"] .q > *, .s06m.visible[data-step="3"] .q > * { opacity: 0.3 !important; }
+        .s06m.visible[data-step="2"] .q blockquote, .s06m.visible[data-step="3"] .q blockquote { transform: scale(0.92); transform-origin: left top; }
+        .s06m.visible[data-step="2"] .hyp2 { opacity: 1; transform: scale(1.06); }
+        .s06m.visible[data-step="3"] .hyp2 { opacity: 0.3; transform: scale(0.96); }
+        .s06m .method { transform-origin: left center; }
+        .s06m.visible[data-step="3"] .method { transform: scale(1.05); }
         .s06m .hyp2, .s06m .method, .s06m .method::after { transition: opacity 0.5s ease, transform 0.5s ease; }
         .s06m.visible[data-step="1"] .hyp2, .s06m.visible[data-step="1"] .method,
         .s06m.visible[data-step="2"] .method { opacity: 0; transform: translateY(24px); pointer-events: none; }
