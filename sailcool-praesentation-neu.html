@@ -1782,7 +1782,7 @@
 
                 /* Titel: Windrad steht direkt im Gelände (Fuß sinkt leicht in den Hügel ein) */
                 let titleRotor = null, titleMill = null;
-                const FX = kind === 'title' ? 0.76 : 0.81, FTOP = kind === 'title' ? 0.26 : 0.28;   // Windrad etwas kleiner, Dorf größer
+                const FX = kind === 'title' ? 0.76 : 0.81, FTOP = kind === 'title' ? 0.38 : 0.4;   // Windrad etwas kleiner, Dorf größer
                 const ROTY = kind === 'title' ? -0.35 : 0.55 - Math.PI / 2;     // Schluss: Rotor zeigt nach links zum Schriftzug
                 {
                     const { g, rotor } = buildTurbine(); titleRotor = rotor; titleMill = g; v.scene.add(g);
@@ -1822,7 +1822,7 @@
                         pv.position.y = ht + 0.08 * sc; pv.rotation.x = 0.25; st.add(pv);
                         st.position.set(x, ground(x, z) - 0.02, z); st.rotation.y = -0.35; v.scene.add(st);
                     };
-                    const HS = SC * 2.6;                                             // Haushöhe ≈ 1/3 der Windradhöhe (wie auf den Fotos)
+                    const HS = SC * 3.6;                                             // Haushöhe ≈ 1/3 der Windradhöhe (wie auf den Fotos)
                     if (kind === 'title') {
                         station(FX - 0.105, 0.4, HS);
                         hut(FX + 0.1, 0.2, HS, 1, -0.4); hut(FX + 0.19, -2.2, HS * 0.85, 2, 0.2); hut(FX - 0.19, -3.2, HS * 0.75, 0, 0.3);
