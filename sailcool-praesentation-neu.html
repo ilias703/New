@@ -663,14 +663,21 @@
         .s06t .techphoto .card, .s15g .gphoto .card { height: 100%; padding: 0; background-size: cover; }
         .s06t .techphoto .card { background-position: 98% 8%; background-size: 330%; }
 
-        .s06m .q { position: absolute !important; left: var(--pad); top: 190px; width: 1580px; }
+        .s06m .q { position: absolute !important; left: var(--pad); top: 200px; width: 1580px; }
         .s06m .q blockquote { font-family: var(--f-display); font-weight: 700; font-size: 56px; letter-spacing: -0.02em; line-height: 1.15; margin-top: 24px; }
-        .s06m .hyp2 { position: absolute !important; left: var(--pad); right: var(--pad); top: 560px; font-family: var(--f-display); font-weight: 600; font-size: 36px; line-height: 1.3; padding-left: 28px; border-left: 4px solid #a9c46c; }
+        .s06m .hyp2 { position: absolute !important; left: var(--pad); right: var(--pad); top: 480px; font-family: var(--f-display); font-weight: 600; font-size: 36px; line-height: 1.3; padding-left: 28px; border-left: 4px solid #a9c46c; }
         .s06m .hyp2 b { color: #a9c46c; font-weight: 800; margin-right: 10px; }
-        .s06m .method { top: 760px; }
+        .s06m .method { top: 800px; gap: 56px; }
+        /* Methodik als vier gleich große Schritte statt Text auf einer Linie (kein Block-Hintergrund mehr) */
+        .s06m .method::before { display: none; }
+        .s06m .method .m { position: relative; display: flex; align-items: center; gap: 20px; padding: 22px 26px; border-radius: 16px; background: rgba(242,242,238,0.08); box-shadow: inset 0 0 0 1px rgba(242,242,238,0.22); }
+        .s06m .method .m:not(:last-child)::after { content: "→"; position: absolute; right: -44px; top: 50%; transform: translateY(-50%); font-size: 30px; color: var(--ink-faint); }
+        .s06m .method .m .n { flex: none; width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; background: var(--sky); color: #0b4f7c !important; font-size: 22px !important; }
+        .s06m .method .m h3 { background: none !important; padding: 0 !important; margin: 0 !important; font-size: 32px !important; white-space: nowrap; }
+        .s06m .method .m h3::after { content: none !important; }
         .s06m .method .m h3 { font-size: 38px; }
         .s06m .method .m .n { font-family: var(--f-display); font-style: normal; font-weight: 700; font-size: 22px; color: var(--sky); }
-        .s06m .method::after { content: 'Methodik'; position: absolute; left: 0; top: -44px; font-family: var(--f-display); font-weight: 600; font-size: 18px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--sky); }
+        .s06m .method::after { content: 'Methodik'; position: absolute; left: 0; top: -52px; font-family: var(--f-display); font-weight: 600; font-size: 18px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--sky); }
         .s06m .method .m p { margin-top: 26px; font-size: 22px; }
 
         .s15g .gphoto { left: var(--pad); top: 330px; width: 760px; height: 620px; }
