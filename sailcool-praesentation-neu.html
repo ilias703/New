@@ -735,6 +735,16 @@
 
 
         /* Inhaltliche Überarbeitung */
+        /* Folie 7: schrittweise aufdecken – Klick 1 Frage, Klick 2 Hypothese, Klick 3 Methodik */
+        .s06m .hyp2, .s06m .method, .s06m .method::after { transition: opacity 0.5s ease, transform 0.5s ease; }
+        .s06m.visible[data-step="1"] .hyp2, .s06m.visible[data-step="1"] .method,
+        .s06m.visible[data-step="2"] .method { opacity: 0; transform: translateY(24px); pointer-events: none; }
+        .s06m.visible .method .m { opacity: 0; transform: translateY(16px); transition: opacity 0.4s ease, transform 0.4s ease; }
+        .s06m.visible[data-step="3"] .method .m { opacity: 1; transform: none; }
+        .s06m.visible[data-step="3"] .method .m:nth-child(2) { transition-delay: 0.15s; }
+        .s06m.visible[data-step="3"] .method .m:nth-child(3) { transition-delay: 0.3s; }
+        .s06m.visible[data-step="3"] .method .m:nth-child(4) { transition-delay: 0.45s; }
+
         .s01b .why3 { position: absolute !important; left: var(--pad); right: var(--pad); top: 540px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
         .s01b .why3 .card { height: 370px; padding: 40px 44px; }
         .s01b .why3 h3 { font-family: var(--f-display); font-weight: 800; font-size: 46px; letter-spacing: -0.02em; margin-top: 30px; white-space: nowrap; }
@@ -888,7 +898,7 @@
             <!-- === FRAGE, HYPOTHESE & METHODIK (zusammengelegt) ===
                  Sprecher: Wir haben bewusst kritisch gefragt: Lohnt sich der Wind überhaupt? Vier Schritte,
                  Befragung nur explorativ (n = 4). -->
-            <section class="slide s06m" data-roman="III." data-meta="Fragestellung & Methodik" aria-label="Forschungsfrage">
+            <section class="slide s06m" data-steps="3" data-roman="III." data-meta="Fragestellung & Methodik" aria-label="Forschungsfrage">
                 <div class="q">
                     <div class="eyebrow rv d1">Forschungsfrage</div>
                     <blockquote class="rv d2">„Unter welchen Markt- und Wettbewerbsbedingungen kann SAILCOOL VILLAGE eine tragfähige Marktnische besetzen?“</blockquote>
