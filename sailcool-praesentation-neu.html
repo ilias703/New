@@ -728,6 +728,11 @@
 
 
         /* Inhaltliche Überarbeitung */
+        .s01b .why3 { position: absolute !important; left: var(--pad); right: var(--pad); top: 540px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+        .s01b .why3 .card { height: 370px; padding: 40px 44px; }
+        .s01b .why3 h3 { font-family: var(--f-display); font-weight: 800; font-size: 46px; letter-spacing: -0.02em; margin-top: 30px; white-space: nowrap; }
+        .s01b .why3 p { font-size: 25px; line-height: 1.45; color: var(--ink-mute); margin-top: 14px; }
+
         .s02 .ctx { position: absolute !important; left: var(--pad); top: 685px; display: flex; align-items: center; gap: 10px; line-height: 1; font-family: var(--f-display); font-weight: 700; font-size: 30px; color: var(--sky); }
         .s02 .ctx svg { width: 40px; height: 40px; flex: none; transform: translateY(4px); }
         .s04p .idea { font-size: 30px; line-height: 1.45; color: var(--ink-soft); margin-top: 26px; max-width: 1500px; }
@@ -785,6 +790,20 @@
                 <!-- 3D-Windrad (three.js, transparenter Hintergrund) -->
                 <div class="index rv d5"><span>Sven Feuerbacher</span><span>Patricia Walter</span><span>Felix Fleig</span><span>David Ammann</span><span>Ilias Ainous</span></div>
                 <div class="prof rv d6">HTWG Konstanz · Prof. Dr.-Ing. Ditmar Ihlenburg</div>
+            </section>
+
+            <!-- === WORUM ES GEHT (Einstieg in einfachen Worten) ===
+                 Sprecher: Bevor wir ins Detail gehen, in einem Satz: … Dann die drei Schritte kurz von links nach rechts. -->
+            <section class="slide s01b" data-meta="Worum es geht" aria-label="Worum es geht">
+                <div class="head">
+                    <div class="eyebrow rv d1">Worum es geht</div>
+                    <div class="h2 rv d2" style="font-size:66px; line-height:1.12">Kleine Kühlräume für Dörfer in Indien, die ihren Strom selbst aus Wind und Sonne erzeugen – damit weniger Ernte verdirbt.</div>
+                </div>
+                <div class="why3">
+                    <div class="card rv d3"><span class="tag">1 · Problem</span><h3>Ernte verdirbt</h3><p>Nach der Ernte fehlt auf dem Land Kühlung – Obst und Gemüse verderben.</p></div>
+                    <div class="card green rv d4"><span class="tag">2 · Unsere Idee</span><h3>Kühlstation im Dorf</h3><p>Windrad und Solarmodule liefern Strom, eine Batterie speichert ihn, ein Kühlraum lagert die Ernte.</p></div>
+                    <div class="card rv d5"><span class="tag">3 · Unsere Arbeit</span><h3>Lohnt sich das?</h3><p>Markt-, Potenzial- und Wettbewerbsanalyse: Wo hat diese Lösung eine Chance?</p></div>
+                </div>
             </section>
 
             <!-- === 02 PROBLEM ===
