@@ -1782,7 +1782,7 @@
 
                 /* Titel: Windrad steht direkt im Gelände (Fuß sinkt leicht in den Hügel ein) */
                 let titleRotor = null, titleMill = null;
-                const FX = kind === 'title' ? 0.76 : 0.81, FTOP = kind === 'title' ? 0.38 : 0.4;   // Windrad etwas kleiner, Dorf größer
+                const FX = kind === 'title' ? 0.76 : 0.81, FTOP = kind === 'title' ? 0.27 : 0.3;   // Windrad etwas kleiner, Dorf größer
                 const ROTY = kind === 'title' ? -0.35 : 0.55 - Math.PI / 2;     // Schluss: Rotor zeigt nach links zum Schriftzug
                 {
                     const { g, rotor } = buildTurbine(); titleRotor = rotor; titleMill = g; v.scene.add(g);
