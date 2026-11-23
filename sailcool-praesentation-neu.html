@@ -270,6 +270,15 @@
         .s08 .aside .card { padding: 34px 38px; margin-bottom: 26px; }
         .s08 .aside .k { font-family: var(--f-display); font-weight: 800; font-size: 50px; letter-spacing: -0.03em; margin-top: 14px; line-height: 1; }
         .s08 .aside p { font-size: 21px; color: var(--ink-mute); margin-top: 10px; line-height: 1.4; }
+        .s08 .aside p b { color: var(--ink); font-weight: 700; }
+        .s08 .aside .k { font-size: 40px; }
+        .s08 .cmp { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 14px; margin-top: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(11,79,124,0.15); font-family: var(--f-display); font-size: 26px; font-weight: 600; }
+        .s08 .cmp .v { font-size: 34px; letter-spacing: -0.02em; }
+        .s08 .cmp.w .v { color: var(--green); }
+        .s08 .cmp .b { position: relative; height: 14px; border-radius: 7px; background: rgba(11,79,124,0.12); }
+        .s08 .cmp .b i { position: absolute; top: 0; bottom: 0; border-radius: 7px; background: #8aa4b6; }
+        .s08 .cmp.w .b i { background: var(--green); }
+        .s08 .cmp .v { font-weight: 800; white-space: nowrap; }
 
         /* ===========================================
            09 MARKTPOTENZIAL — Zeilen mit Log-Haarlinien
@@ -1007,7 +1016,8 @@ Sprecher: ILIAS · ca. 1 Minute
 Die Animation startet nah an Indien und zoomt heraus. Ruhig kurz warten.
 „Zuerst haben wir uns den Markt für kleine Windanlagen angeschaut. In Indien gibt es den praktisch nicht.“
 Wenn herausgezoomt ist: „In ganz Indien sind 3 bis 5 Megawatt Kleinwind installiert. China hat 704, die USA 156. Unser Windrad muss man hier mit der Lupe suchen.“
-Gründe: „Die staatliche Förderung ist 2017 ausgelaufen. Und Solar ist einfach günstiger: 1 kW Kleinwind kostet ab 80.000 Rupien, 1 kW Solar 40.000 bis 70.000.“
+Gründe: „Die staatliche Förderung ist 2017 ausgelaufen. Und Solar ist einfach günstiger: 1 kW Solar kostet 400 bis 700 Euro, 1 kW Kleinwind mindestens 800 Euro. Beides ohne Batterie.“
+Bei Nachfrage: Originalwerte 40.000 bis 70.000 INR und ab 80.000 INR (CSTEP 2023), umgerechnet mit 100 INR pro Euro.
 Folgerung: „Kleinwind lohnt sich in Indien also nicht überall, sondern nur an ausgewählten Standorten mit gutem Wind und mit einem echten Zusatznutzen gegenüber Solar.“
 Quelle bei Nachfrage: Suresh Kumar et al. 2024 und CSTEP 2023.
 -->
@@ -1034,8 +1044,11 @@ Quelle bei Nachfrage: Suresh Kumar et al. 2024 und CSTEP 2023.
                     <i class="br tl"></i><i class="br tr"></i><i class="br bl"></i><i class="br bb"></i>
                 </div>
                 <div class="aside">
-                    <div class="card rv d4"><span class="tag">1 kW Kleinwind</span><div class="k">ab 80.000 INR</div><p>ohne Batterie</p></div>
-                    <div class="card rv d5"><span class="tag">1 kW Photovoltaik</span><div class="k">40–70.000 INR</div><p>ohne Batterie · Förderung für Kleinwind seit 2017 ausgelaufen</p></div>
+                    <div class="card rv d4"><span class="tag">Preis für 1 kW ohne Batterie</span>
+                        <div class="cmp"><span class="n">Solar</span><span class="v">400–700 €</span></div>
+                        <div class="cmp w"><span class="n">Kleinwind</span><span class="v">ab 800 €</span></div>
+                        <p style="margin-top:16px"><b>Wind ist teurer als Solar</b></p></div>
+                    <div class="card rv d5"><span class="tag">Förderung</span><div class="k">2017 ausgelaufen</div><p>Seitdem werden immer weniger Kleinwindanlagen gekauft</p></div>
                 </div>
             </section>
 
