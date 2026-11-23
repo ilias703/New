@@ -1584,7 +1584,10 @@
                 if (document.body.classList.contains('editing')) return;
                 if (e.key === 'p' || e.key === 'P') startPresenter();
                 if (e.key === 'f' || e.key === 'F') {
-                    if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+                    const el = document.documentElement;
+                    if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+                    else if (el.requestFullscreen) el.requestFullscreen().catch(() => el.webkitRequestFullscreen && el.webkitRequestFullscreen());
+                    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();   // ältere Safari-Versionen
                 }
             });
             if (window.opener && !window.opener.closed) {            // nach dem Tauschen: Referentenansicht ist jetzt der Opener
