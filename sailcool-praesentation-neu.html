@@ -1587,9 +1587,15 @@
                     if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
                 }
             });
+            if (window.opener && !window.opener.closed) {            // nach dem Tauschen: Referentenansicht ist jetzt der Opener
+                window.__presenterWin = window.opener;
+                setTimeout(() => { try { window.opener.postMessage({ type: 'deck-ready' }, '*'); } catch (err) {} }, 600);
+                setTimeout(() => { try { window.opener.postMessage({ type: 'deck-ready' }, '*'); } catch (err) {} }, 1600);
+            }
             window.addEventListener('message', (e) => {
                 const d = e.data || {};
                 if (d.type === 'deck-hello') { window.__presenterWin = e.source; deck.emit(); }
+                if (d.type === 'become-presenter') { location.href = baseUrl + '?presenter'; }
                 if (d.type === 'deck-cmd') {
                     if (d.cmd === 'next') deck.next();
                     if (d.cmd === 'prev') deck.prev();
@@ -1623,15 +1629,16 @@
                 <header><div class="pos"><b id="pvPos">1 / ${slides.length}</b><span id="pvStep"></span></div>
                     <div class="tm"><span id="pvTimer">00:00</span><button id="pvReset" title="Timer neu starten">↺</button></div>
                     <div class="ck" id="pvClock"></div>
-                    <div class="nav"><button id="pvPrev">◀</button><button id="pvNext">Weiter ▶</button><button id="pvClose" title="Referentenansicht schließen (Esc)">✕</button></div></header>
+                    <div class="nav"><button id="pvPrev">◀</button><button id="pvNext">Weiter ▶</button><button id="pvSwap" title="Präsentation und Referentenansicht zwischen den Bildschirmen tauschen">⇄ Tauschen</button><button id="pvClose" title="Referentenansicht schließen (Esc)">✕</button></div></header>
                 <section class="cur"><div class="lab">Aktuell · <span id="pvTitle"></span></div><div class="frame"><iframe id="pvCur" src="${baseUrl}?preview" title="Aktuelle Folie"></iframe></div>
                     <div class="lab">Notizen</div><div class="notes" id="pvNotes"></div></section>
                 <section class="nxt"><div class="lab">Als Nächstes · <span id="pvNextTitle"></span></div><div class="frame"><iframe id="pvNx" src="${baseUrl}?preview" title="Nächste Folie"></iframe></div>
-                    <div class="keys">Vorschau vereinfacht (ohne 3D). Auf dem Beamer läuft die volle Präsentation.<br>Tasten: → / Leertaste weiter · ← zurück · Esc schließen · im Hauptfenster: F Vollbild</div></section>`;
+                    <div class="keys">Vorschau vereinfacht (ohne 3D). Auf dem Beamer läuft die volle Präsentation.<br>Falsche Bildschirme? ⇄ Tauschen klicken.<br>Tasten: → / Leertaste weiter · ← zurück · Esc schließen · im Präsentationsfenster: F Vollbild</div></section>`;
             document.body.appendChild(ui);
             document.title = 'Referentenansicht · SAILCOOL';
             const $ = (id) => document.getElementById(id);
-            const send = (cmd, n) => { if (window.opener) window.opener.postMessage({ type: 'deck-cmd', cmd, n }, '*'); };
+            let target = window.opener;                                   // Fenster mit der Präsentation
+            const send = (cmd, n) => { if (target && !target.closed) target.postMessage({ type: 'deck-cmd', cmd, n }, '*'); };
             let st = { slide: 0, step: 0, steps: 0, total: slides.length };
             const render = () => {
                 const sl = slides[st.slide];
@@ -1645,7 +1652,17 @@
                 $('pvCur').contentWindow && $('pvCur').contentWindow.postMessage({ type: 'pv-show', slide: st.slide, step: st.step }, '*');
                 $('pvNx').contentWindow && $('pvNx').contentWindow.postMessage({ type: 'pv-show', slide: nIdx, step: more ? st.step + 1 : 1 }, '*');
             };
-            window.addEventListener('message', (e) => { const d = e.data || {}; if (d.type === 'deck-state') { st = d; render(); } });
+            window.addEventListener('message', (e) => {
+                const d = e.data || {};
+                if (d.type === 'deck-state') { target = e.source; st = d; render(); }
+                if (d.type === 'deck-ready') { target = e.source; e.source.postMessage({ type: 'deck-hello' }, '*'); }
+            });
+            /* Tauschen: dieses Fenster wird zur Präsentation, das andere zur Referentenansicht */
+            $('pvSwap').onclick = () => {
+                if (!target || target.closed) { alert('Das Präsentationsfenster ist nicht mehr offen.'); return; }
+                target.postMessage({ type: 'become-presenter' }, '*');
+                location.href = baseUrl + '#' + (st.slide + 1);
+            };
             ['pvCur', 'pvNx'].forEach((id) => $(id).addEventListener('load', render));
             $('pvNext').onclick = () => send('next'); $('pvPrev').onclick = () => send('prev');
             const closePv = () => { window.close(); setTimeout(() => { if (!window.closed) location.href = baseUrl; }, 200); };   // falls Schließen nicht erlaubt: zurück zur normalen Präsentation
@@ -1663,7 +1680,7 @@
                 $('pvClock').textContent = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
             }, 500);
             if (window.opener) window.opener.postMessage({ type: 'deck-hello' }, '*');
-            else $('pvNotes').textContent = 'Kein Hauptfenster gefunden. Bitte die Präsentation öffnen und dort P drücken.';
+            else $('pvNotes').textContent = 'Verbinde mit der Präsentation …';
             render();
         }
 
