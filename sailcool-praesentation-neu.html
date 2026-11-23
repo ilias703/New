@@ -1568,7 +1568,7 @@
             if ('getScreenDetails' in window) { try { screens = await window.getScreenDetails(); } catch (err) { screens = null; } }
             const laptop = screens ? (screens.screens.find((x) => x.isInternal) || screens.currentScreen) : null;
             const beamer = screens ? screens.screens.find((x) => x !== laptop) : null;
-            const feat = laptop ? `left=${laptop.availLeft},top=${laptop.availTop},width=${laptop.availWidth},height=${laptop.availHeight}` : 'width=1400,height=860';
+            const feat = laptop ? `left=${laptop.availLeft},top=${laptop.availTop},width=${laptop.availWidth},height=${laptop.availHeight}` : 'left=0,top=0,width=1400,height=860';   // Safari: links oben auf dem Hauptbildschirm (MacBook, mit Menüleiste)
             const w = window.open(baseUrl + '?presenter', 'sailcool-referent', feat);
             if (!w) { alert('Das Referentenfenster wurde vom Browser blockiert. Bitte Pop-ups für diese Seite erlauben und erneut P drücken.'); return; }
             window.__presenterWin = w;
