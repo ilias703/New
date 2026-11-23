@@ -1561,14 +1561,28 @@
            Taste F schaltet das Hauptfenster in den Vollbildmodus.
            =========================================== */
         const baseUrl = location.href.split('#')[0].split('?')[0];
+        /* P: Referentenansicht öffnen. In Chrome (Window-Management-API) wird die Präsentation automatisch
+           im Vollbild auf den externen Bildschirm gelegt und die Referentenansicht auf den Laptop-Bildschirm. */
+        async function startPresenter() {
+            let screens = null;
+            if ('getScreenDetails' in window) { try { screens = await window.getScreenDetails(); } catch (err) { screens = null; } }
+            const laptop = screens ? (screens.screens.find((x) => x.isInternal) || screens.currentScreen) : null;
+            const beamer = screens ? screens.screens.find((x) => x !== laptop) : null;
+            const feat = laptop ? `left=${laptop.availLeft},top=${laptop.availTop},width=${laptop.availWidth},height=${laptop.availHeight}` : 'width=1400,height=860';
+            const w = window.open(baseUrl + '?presenter', 'sailcool-referent', feat);
+            if (!w) { alert('Das Referentenfenster wurde vom Browser blockiert. Bitte Pop-ups für diese Seite erlauben und erneut P drücken.'); return; }
+            window.__presenterWin = w;
+            if (beamer) {
+                try { await document.documentElement.requestFullscreen({ screen: beamer }); }
+                catch (err) { alert('Bitte dieses Fenster auf den Beamer ziehen und dort F drücken.'); }
+            } else if (screens && screens.screens.length < 2) {
+                alert('Kein zweiter Bildschirm erkannt. Bitte den Beamer als „erweiterten“ Bildschirm anschließen (nicht spiegeln).');
+            }
+        }
         if (MODE === 'deck') {
             document.addEventListener('keydown', (e) => {
                 if (document.body.classList.contains('editing')) return;
-                if (e.key === 'p' || e.key === 'P') {
-                    const w = window.open(baseUrl + '?presenter', 'sailcool-referent', 'width=1400,height=860');
-                    if (!w) { alert('Das Referentenfenster wurde vom Browser blockiert. Bitte Pop-ups für diese Seite erlauben und erneut P drücken.'); return; }
-                    window.__presenterWin = w;
-                }
+                if (e.key === 'p' || e.key === 'P') startPresenter();
                 if (e.key === 'f' || e.key === 'F') {
                     if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
                 }
