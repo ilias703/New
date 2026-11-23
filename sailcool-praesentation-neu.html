@@ -1563,7 +1563,24 @@
             const ball = (r, mat) => new T.Mesh(new T.SphereGeometry(r, 28, 18), mat);
 
             /* ---------- Windrad (Vorbild Poster) ---------- */
-            function buildTurbine() {
+            /* SAILWIND-Segelwindrad (Standard) bzw. klassisches 3-Blatt-Windrad (classic = true, nur Kleinwind-Vergleich) */
+            const sailMat = new T.MeshStandardMaterial({ color: new T.Color(0xf1e6cf).convertSRGBToLinear(), roughness: 0.85, side: T.DoubleSide });
+            const sparMat = new T.MeshStandardMaterial({ color: new T.Color(0x8a8f96).convertSRGBToLinear(), roughness: 0.4, metalness: 0.6 });
+            function sailGeometry(R) {
+                /* dreieckiges Segel: vom Mast-Ende des Holms bis zur Spitze, hinten nach außen gewölbt (Bauch im Wind) */
+                const N = 14, pos = [], idx = [];
+                const r0 = 0.28 * R, r1 = R, wTip = 0.05 * R, wRoot = 0.42 * R;
+                for (let i = 0; i <= N; i++) {
+                    const u = i / N, r = r0 + (r1 - r0) * u, w = wRoot + (wTip - wRoot) * u;
+                    for (let j = 0; j <= 6; j++) {
+                        const v = j / 6, belly = Math.sin(Math.PI * v) * Math.sin(Math.PI * Math.min(1, u * 1.15)) * 0.09 * R;
+                        pos.push(-w * v, r, belly + v * 0.04 * R);
+                    }
+                }
+                for (let i = 0; i < N; i++) for (let j = 0; j < 6; j++) { const k = i * 7 + j; idx.push(k, k + 7, k + 1, k + 1, k + 7, k + 8); }
+                const g = new T.BufferGeometry(); g.setAttribute('position', new T.Float32BufferAttribute(pos, 3)); g.setIndex(idx); g.computeVertexNormals(); return g;
+            }
+            function buildTurbine(classic = false) {
                 const g = new T.Group();
                 const tower = cyl(0.075, 0.13, 4.4, M.white, 48); tower.position.y = -2.2; g.add(tower);
                 const collar = cyl(0.115, 0.115, 0.14, M.dark, 48); collar.position.y = -2.1; g.add(collar);
@@ -1571,14 +1588,33 @@
                 const nacelle = cyl(0.12, 0.1, 0.42, M.dark); nacelle.rotation.x = Math.PI / 2; nacelle.position.z = -0.08; g.add(nacelle);
                 const rotor = new T.Group(); rotor.position.z = 0.16; g.add(rotor);
                 const hub = ball(0.17, M.dark); hub.scale.z = 1.25; rotor.add(hub);
-                const sh = new T.Shape();
-                sh.moveTo(0.1, -0.07); sh.quadraticCurveTo(1.15, -0.26, 2.3, 0.42); sh.quadraticCurveTo(1.25, 0.06, 0.1, 0.07); sh.closePath();
-                const geo = new T.ExtrudeGeometry(sh, { depth: 0.035, bevelEnabled: true, bevelThickness: 0.018, bevelSize: 0.018, bevelSegments: 4, curveSegments: 48 });
-                geo.translate(0, 0, -0.0175); geo.scale(0.82, 0.82, 1);
-                for (let i = 0; i < 3; i++) {
-                    const arm = new T.Group(); arm.rotation.z = i * (Math.PI * 2 / 3) + Math.PI / 2;
-                    const blade = new T.Mesh(geo, M.white); blade.rotation.x = 0.28; arm.add(blade); rotor.add(arm);
+                if (classic) {
+                    const sh = new T.Shape();
+                    sh.moveTo(0.1, -0.07); sh.quadraticCurveTo(1.15, -0.26, 2.3, 0.42); sh.quadraticCurveTo(1.25, 0.06, 0.1, 0.07); sh.closePath();
+                    const geo = new T.ExtrudeGeometry(sh, { depth: 0.035, bevelEnabled: true, bevelThickness: 0.018, bevelSize: 0.018, bevelSegments: 4, curveSegments: 48 });
+                    geo.translate(0, 0, -0.0175); geo.scale(0.82, 0.82, 1);
+                    for (let i = 0; i < 3; i++) {
+                        const arm = new T.Group(); arm.rotation.z = i * (Math.PI * 2 / 3) + Math.PI / 2;
+                        const blade = new T.Mesh(geo, M.white); blade.rotation.x = 0.28; arm.add(blade); rotor.add(arm);
+                    }
+                    return { g, rotor, tower };
                 }
+                /* 8 Holme mit Stoffsegeln, Spannseil zwischen den Holmspitzen (wie traditionelle Segelwindmühlen) */
+                const R = 1.5, n = 8, sg = sailGeometry(R);
+                const tips = [];
+                for (let i = 0; i < n; i++) {
+                    const arm = new T.Group(); arm.rotation.z = i * (Math.PI * 2 / n);
+                    const spar = cyl(0.022, 0.03, R, sparMat, 10); spar.position.y = R / 2; arm.add(spar);
+                    const sail = new T.Mesh(sg, sailMat); sail.rotation.y = 0.32; arm.add(sail);      // Anstellwinkel der Segel
+                    rotor.add(arm);
+                    const a = i * (Math.PI * 2 / n) + Math.PI / 2; tips.push(new T.Vector3(Math.cos(a) * R, Math.sin(a) * R, 0));
+                }
+                for (let i = 0; i < n; i++) {                                   // Spannseil
+                    const p1 = tips[i], p2 = tips[(i + 1) % n], len = p1.distanceTo(p2);
+                    const rope = cyl(0.006, 0.006, len, sparMat, 6); rope.position.copy(p1).add(p2).multiplyScalar(0.5);
+                    rope.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), p2.clone().sub(p1).normalize()); rotor.add(rope);
+                }
+                const bow = cyl(0.03, 0.02, 0.45, sparMat, 10); bow.rotation.x = Math.PI / 2; bow.position.z = 0.25; rotor.add(bow);   // kurzer Bugspriet
                 return { g, rotor, tower };
             }
 
@@ -1842,7 +1878,7 @@
                     let yb = Infinity;                                            // tiefste Stelle unter dem Mastfuß
                     for (let dx = -0.15; dx <= 0.15; dx += 0.05) for (let dz = -0.15; dz <= 0.15; dz += 0.05) yb = Math.min(yb, hillY(X + dx, ZT + dz));
                     let a = 0.1, b2 = 4;                                          // Größe: Blattspitze bei ~14 % von oben
-                    for (let k = 0; k < 40; k++) { const m = (a + b2) / 2; const top = prj(X, yb + 6.37 * m, ZT).y; if ((1 - top) / 2 > FTOP) a = m; else b2 = m; }
+                    for (let k = 0; k < 40; k++) { const m = (a + b2) / 2; const top = prj(X, yb + 5.95 * m, ZT).y; if ((1 - top) / 2 > FTOP) a = m; else b2 = m; }
                     const SC = (a + b2) / 2;
                     g.scale.setScalar(SC); g.position.set(X, yb - 0.3 * SC + 4.42 * SC, ZT + 0.35); g.rotation.y = ROTY;
                     /* Dorf: Häuser mit Ziegeldach + Kühlstation (Container mit Solardach) rund um das Windrad */
@@ -1941,7 +1977,7 @@
                     v.camera.near = 0.002; v.camera.updateProjectionMatrix();
                     const card = wb.parentElement, slide = wb.closest('.slide');
                     const data = [['cn', 704, 0], ['us', 156, 2.6], ['in', 4, 6.0]].map(([k, mw, x]) => {
-                        const { g, rotor } = buildTurbine(); const sc = mw / 704;
+                        const { g, rotor } = buildTurbine(true); const sc = mw / 704;
                         g.position.set(x, 4.42 * sc, 0); g.rotation.y = -0.35; v.scene.add(g);
                         return { k, sc, g, rotor, el: card.querySelector(`.wl[data-k="${k}"]`), x };
                     });
