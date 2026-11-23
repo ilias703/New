@@ -735,6 +735,31 @@
 
 
         /* Inhaltliche Überarbeitung */
+        /* ===========================================
+           REFERENTENANSICHT (?presenter) und VORSCHAU (?preview)
+           =========================================== */
+        body.preview .progress, body.preview .edit-hotzone, body.preview .edit-toggle, body.preview .lbar, body.preview .chapter, body.preview .vignette { display: none !important; }
+        body.preview .slide { animation: none !important; transition: none !important; }
+        body.preview .slide .rv { transition: none !important; }
+        body.presenter .deck-viewport, body.presenter .progress, body.presenter .edit-hotzone, body.presenter .edit-toggle { display: none !important; }
+        body.presenter { background: #071d2e; overflow: hidden; }
+        #pv { position: fixed; inset: 0; display: grid; grid-template-columns: 1.35fr 1fr; grid-template-rows: 64px 1fr; gap: 18px; padding: 18px 22px 22px; color: #f2f2ee; font-family: 'Inter', sans-serif; }
+        #pv header { grid-column: 1 / -1; display: flex; align-items: center; gap: 28px; font-family: 'Inter Tight', sans-serif; }
+        #pv .pos b { font-size: 26px; font-weight: 800; } #pv .pos span { font-size: 18px; color: #9db6c9; }
+        #pv .tm { display: flex; align-items: center; gap: 10px; margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 34px; font-weight: 500; color: #a9c46c; }
+        #pv .ck { font-family: 'JetBrains Mono', monospace; font-size: 22px; color: #9db6c9; }
+        #pv button { font-family: 'Inter Tight', sans-serif; font-weight: 700; font-size: 18px; color: #f2f2ee; background: transparent; border: 1.5px solid rgba(242,242,238,0.45); border-radius: 999px; padding: 8px 18px; cursor: pointer; }
+        #pv #pvNext { background: #556b2f; border-color: #556b2f; }
+        #pv .tm button { font-size: 16px; padding: 4px 12px; }
+        #pv section { display: flex; flex-direction: column; min-height: 0; gap: 10px; }
+        #pv .lab { font-family: 'Inter Tight', sans-serif; font-weight: 600; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #29b6f6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #pv .lab span { color: #c3d3df; text-transform: none; letter-spacing: 0; }
+        #pv .frame { position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #000; box-shadow: 0 0 0 1px rgba(242,242,238,0.15); }
+        #pv .frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; pointer-events: none; }
+        #pv .nxt .frame { opacity: 0.85; }
+        #pv .keys { margin-top: auto; font-size: 15px; line-height: 1.6; color: #6f8798; }
+        #pv .notes { flex: 1; min-height: 0; overflow: auto; font-size: 22px; line-height: 1.55; color: #e1e9ef; background: rgba(242,242,238,0.05); border-radius: 10px; padding: 16px 20px; }
+
         /* SAILWIND-Folie: 3D-Nahaufnahme statt Foto (Foto bleibt als Reserve ohne 3D) */
         .s06t .techphoto #sailHero { position: absolute; inset: 0; width: 100%; height: 100%; display: none; border-radius: 18px;
             background: radial-gradient(ellipse at 50% 30%, #f7e9cf 0%, #e9c9a0 45%, #b9c7a6 100%); }
@@ -1166,6 +1191,13 @@
 
     <script>
         /* ===========================================
+           MODUS: normal · ?presenter (Referentenansicht) · ?preview (Vorschaubild in der Referentenansicht)
+           =========================================== */
+        const MODE = new URLSearchParams(location.search).has('presenter') ? 'presenter'
+                   : new URLSearchParams(location.search).has('preview') ? 'preview' : 'deck';
+        if (MODE !== 'deck') { window.__NO3D = true; document.body.classList.add(MODE); }
+
+        /* ===========================================
            CHROME — Metadaten-Leiste, Side-Rails, Kapitel-Regel, Fuß
            in jede Folie einsetzen (vor dem Editor)
            =========================================== */
@@ -1417,13 +1449,19 @@
             /* Folien mit data-steps decken ihre Inhalte schrittweise auf (Klick/Pfeil), bevor es weitergeht */
             next() {
                 const s = this.slides[this.current], n = +(s.dataset.steps || 0), st = +(s.dataset.step || 0);
-                if (n && st < n) { s.dataset.step = st + 1; return; }
+                if (n && st < n) { s.dataset.step = st + 1; this.emit(); return; }
                 this.showSlide(this.current + 1);
             }
             prev() {
                 const s = this.slides[this.current], st = +(s.dataset.step || 0);
-                if (s.dataset.steps && st > 1) { s.dataset.step = st - 1; return; }
+                if (s.dataset.steps && st > 1) { s.dataset.step = st - 1; this.emit(); return; }
                 this.showSlide(this.current - 1);
+            }
+            /* Referentenansicht: aktuellen Stand an das Referentenfenster melden */
+            emit() {
+                const w = window.__presenterWin; if (!w || w.closed) return;
+                const s = this.slides[this.current];
+                w.postMessage({ type: 'deck-state', slide: this.current, step: +(s.dataset.step || 0), steps: +(s.dataset.steps || 0), total: this.slides.length }, '*');
             }
             showSlide(i) {
                 const prev = this.current, next = Math.max(0, Math.min(i, this.slides.length - 1));
@@ -1462,6 +1500,7 @@
                 }
                 document.getElementById('progress').style.width = ((this.current + 1) / this.slides.length * 100) + '%';
                 history.replaceState(null, '', '#' + (this.current + 1));
+                this.emit();
             }
             runCounters(slide) {
                 slide.querySelectorAll('.count').forEach((el) => {
@@ -1513,6 +1552,102 @@
         const deck = new SlidePresentation();
         const editor = new InlineEditor();
 
+        /* ===========================================
+           REFERENTENANSICHT
+           Taste P öffnet ein zweites Fenster (für den MacBook-Bildschirm) mit aktueller Folie,
+           nächster Folie, Sprechernotizen und Timer. Das Hauptfenster (Beamer) zeigt nur die Folien.
+           Taste F schaltet das Hauptfenster in den Vollbildmodus.
+           =========================================== */
+        const baseUrl = location.href.split('#')[0].split('?')[0];
+        if (MODE === 'deck') {
+            document.addEventListener('keydown', (e) => {
+                if (document.body.classList.contains('editing')) return;
+                if (e.key === 'p' || e.key === 'P') {
+                    const w = window.open(baseUrl + '?presenter', 'sailcool-referent', 'width=1400,height=860');
+                    if (!w) { alert('Das Referentenfenster wurde vom Browser blockiert. Bitte Pop-ups für diese Seite erlauben und erneut P drücken.'); return; }
+                    window.__presenterWin = w;
+                }
+                if (e.key === 'f' || e.key === 'F') {
+                    if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+                }
+            });
+            window.addEventListener('message', (e) => {
+                const d = e.data || {};
+                if (d.type === 'deck-hello') { window.__presenterWin = e.source; deck.emit(); }
+                if (d.type === 'deck-cmd') {
+                    if (d.cmd === 'next') deck.next();
+                    if (d.cmd === 'prev') deck.prev();
+                    if (d.cmd === 'goto') deck.showSlide(d.n);
+                }
+            });
+        }
+
+        /* Vorschau-Modus: zeigt eine Folie in einem bestimmten Schritt, ohne Übergänge */
+        if (MODE === 'preview') {
+            const showStatic = (n, step) => {
+                deck.slides.forEach((sl, i) => { sl.classList.remove('cam-in-f', 'cam-in-b', 'cam-out-f', 'cam-out-b', 'leaving'); sl.classList.toggle('active', i === n); sl.classList.toggle('visible', i === n); });
+                const sl = deck.slides[n]; if (sl && sl.dataset.steps) sl.dataset.step = step || 1;
+            };
+            window.addEventListener('message', (e) => { const d = e.data || {}; if (d.type === 'pv-show') showStatic(d.slide, d.step); });
+            showStatic(0, 1);
+        }
+
+        /* Referentenfenster */
+        if (MODE === 'presenter') {
+            const slides = [...deck.slides];
+            const noteOf = (sl) => {                                       // Sprechernotiz = HTML-Kommentar direkt vor der Folie
+                let n = sl.previousSibling;
+                while (n && n.nodeType === 3 && !n.textContent.trim()) n = n.previousSibling;
+                if (!n || n.nodeType !== 8) return '';
+                return n.textContent.replace(/^\s*===.*?===\s*/, '').replace(/^\s*Sprecher:\s*/m, '').replace(/\s+/g, ' ').trim();
+            };
+            const titleOf = (sl) => { const h = sl.querySelector('.h2, .h1, .ask .it'); const t = h ? h.innerHTML.replace(/<br\s*\/?>/g, ' ').replace(/<[^>]+>/g, '') : (sl.getAttribute('aria-label') || ''); const d = document.createElement('div'); d.innerHTML = t; return d.textContent.replace(/\s+/g, ' ').trim(); };
+            const ui = document.createElement('div'); ui.id = 'pv';
+            ui.innerHTML = `
+                <header><div class="pos"><b id="pvPos">1 / ${slides.length}</b><span id="pvStep"></span></div>
+                    <div class="tm"><span id="pvTimer">00:00</span><button id="pvReset" title="Timer neu starten">↺</button></div>
+                    <div class="ck" id="pvClock"></div>
+                    <div class="nav"><button id="pvPrev">◀</button><button id="pvNext">Weiter ▶</button></div></header>
+                <section class="cur"><div class="lab">Aktuell · <span id="pvTitle"></span></div><div class="frame"><iframe id="pvCur" src="${baseUrl}?preview" title="Aktuelle Folie"></iframe></div>
+                    <div class="lab">Notizen</div><div class="notes" id="pvNotes"></div></section>
+                <section class="nxt"><div class="lab">Als Nächstes · <span id="pvNextTitle"></span></div><div class="frame"><iframe id="pvNx" src="${baseUrl}?preview" title="Nächste Folie"></iframe></div>
+                    <div class="keys">Tasten: → / Leertaste weiter · ← zurück<br>Im Hauptfenster: F Vollbild</div></section>`;
+            document.body.appendChild(ui);
+            document.title = 'Referentenansicht · SAILCOOL';
+            const $ = (id) => document.getElementById(id);
+            const send = (cmd, n) => { if (window.opener) window.opener.postMessage({ type: 'deck-cmd', cmd, n }, '*'); };
+            let st = { slide: 0, step: 0, steps: 0, total: slides.length };
+            const render = () => {
+                const sl = slides[st.slide];
+                $('pvPos').textContent = (st.slide + 1) + ' / ' + st.total;
+                $('pvStep').textContent = st.steps ? ` · Schritt ${st.step} / ${st.steps}` : '';
+                $('pvTitle').textContent = titleOf(sl);
+                $('pvNotes').textContent = noteOf(sl) || '–';
+                const more = st.steps && st.step < st.steps;
+                const nIdx = more ? st.slide : Math.min(st.slide + 1, slides.length - 1);
+                $('pvNextTitle').textContent = more ? 'gleiche Folie, nächster Schritt' : (st.slide + 1 < slides.length ? titleOf(slides[nIdx]) : 'Ende');
+                $('pvCur').contentWindow && $('pvCur').contentWindow.postMessage({ type: 'pv-show', slide: st.slide, step: st.step }, '*');
+                $('pvNx').contentWindow && $('pvNx').contentWindow.postMessage({ type: 'pv-show', slide: nIdx, step: more ? st.step + 1 : 1 }, '*');
+            };
+            window.addEventListener('message', (e) => { const d = e.data || {}; if (d.type === 'deck-state') { st = d; render(); } });
+            ['pvCur', 'pvNx'].forEach((id) => $(id).addEventListener('load', render));
+            $('pvNext').onclick = () => send('next'); $('pvPrev').onclick = () => send('prev');
+            document.addEventListener('keydown', (e) => {
+                if (['ArrowRight', 'ArrowDown', ' ', 'PageDown'].includes(e.key)) { e.preventDefault(); send('next'); }
+                if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); send('prev'); }
+            }, true);
+            let t0 = Date.now();
+            $('pvReset').onclick = () => { t0 = Date.now(); };
+            setInterval(() => {
+                const sec = Math.floor((Date.now() - t0) / 1000);
+                $('pvTimer').textContent = String(Math.floor(sec / 60)).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0');
+                $('pvClock').textContent = new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+            }, 500);
+            if (window.opener) window.opener.postMessage({ type: 'deck-hello' }, '*');
+            else $('pvNotes').textContent = 'Kein Hauptfenster gefunden. Bitte die Präsentation öffnen und dort P drücken.';
+            render();
+        }
+
         const hotzone = document.querySelector('.edit-hotzone');
         const editToggle = document.getElementById('editToggle');
         let hideTimeout = null;
@@ -1535,7 +1670,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         (function () {
-            if (!window.THREE) return;                       // ohne three.js bleiben die SVG-Icons
+            if (!window.THREE || window.__NO3D) return;      // ohne three.js (oder in Vorschau/Referentenansicht) bleiben die SVG-Icons
             const T = THREE;
             const still = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
